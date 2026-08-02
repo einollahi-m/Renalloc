@@ -16,7 +16,7 @@
           <div v-for="test in currentCategoryTests" :key="test.key" class="rt-row">
             <div class="rt-label"><span>{{ test.label }}</span><small v-if="test.unit">({{ test.unit }})</small></div>
             <div class="rt-input-group">
-              <input type="text" class="form-input" v-model="formValues[test.key]" placeholder="مقدار" dir="ltr" style="text-align:center;" @input="validateField(test.key)" />
+              <input type="text" inputmode="decimal" class="form-input" v-model="formValues[test.key]" placeholder="مقدار" dir="ltr" style="text-align:center;" @input="normalizeField(test.key, $event)" />
               <small v-if="errors[test.key]" class="rt-error">{{ errors[test.key] }}</small>
               <small v-else class="rt-hint">{{ test.min }} – {{ test.max }}</small>
             </div>
@@ -33,7 +33,7 @@
             <div v-for="field in urine24Fields" :key="field.key" class="rt-row">
               <div class="rt-label"><span>{{ field.label }}</span><small v-if="field.unit">({{ field.unit }})</small></div>
               <div class="rt-input-group">
-                <input type="text" class="form-input" v-model="formValues[field.key]" placeholder="مقدار" dir="ltr" style="text-align:center;" @input="validateField(field.key)" />
+                <input type="text" inputmode="decimal" class="form-input" v-model="formValues[field.key]" placeholder="مقدار" dir="ltr" style="text-align:center;" @input="normalizeField(field.key, $event)" />
                 <small v-if="errors[field.key]" class="rt-error">{{ errors[field.key] }}</small>
                 <small v-else class="rt-hint">{{ field.min }} – {{ field.max }}</small>
               </div>
@@ -45,7 +45,7 @@
           <div class="rt-urine-grid">
             <div v-for="item in urineAnalysisFields" :key="item.key" class="rt-urine-item">
               <label>{{ item.label }}</label>
-              <input v-if="item.type==='text'" type="text" class="form-input" v-model="formValues[item.key]" placeholder="مقدار-مقدار" dir="ltr" />
+              <input v-if="item.type==='text'" type="text" inputmode="decimal" class="form-input" v-model="formValues[item.key]" placeholder="مقدار-مقدار" dir="ltr" @input="normalizeRangeField(item.key, $event)" />
               <select v-else class="form-select" v-model="formValues[item.key]">
                 <option v-for="opt in qualitativeOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
               </select>
@@ -62,7 +62,7 @@
           <div v-if="formValues.urine_culture_result==='positive'" class="rt-row" style="margin-top:10px;">
             <div class="rt-label"><span>Count</span><small>(CFU/mL)</small></div>
             <div class="rt-input-group">
-              <input type="text" class="form-input" v-model="formValues.urine_culture_count" placeholder="تعداد کلونی" dir="ltr" style="text-align:center;" @input="validateField('urine_culture_count')" />
+              <input type="text" inputmode="numeric" class="form-input" v-model="formValues.urine_culture_count" placeholder="تعداد کلونی" dir="ltr" style="text-align:center;" @input="normalizeField('urine_culture_count', $event)" />
               <small v-if="errors.urine_culture_count" class="rt-error">{{ errors.urine_culture_count }}</small>
               <small v-else class="rt-hint">0 – 100000000</small>
             </div>
@@ -80,6 +80,7 @@
 <script setup>
 import { ref, reactive, computed, watch } from 'vue'
 import { routineCategories, routineCategoryLabels, routineTestsByCategory, testDefByKey, urine24Fields, urineAnalysisFields, qualitativeOptions } from '../data/routineTests'
+import { normalizeLocalizedNumber, normalizeLocalizedNumberRange } from '../utils/validation'
 
 const props = defineProps({
   visible: { type: Boolean, default: false },
@@ -149,6 +150,15 @@ function validateField(key) {
   if (def && def.min != null && num < def.min) { errors[key] = `کمتر از حد مجاز (${def.min})`; return false }
   if (def && def.max != null && num > def.max) { errors[key] = `بیشتر از حد مجاز (${def.max})`; return false }
   return true
+}
+
+function normalizeField(key, event) {
+  formValues[key] = normalizeLocalizedNumber(event.target.value)
+  validateField(key)
+}
+
+function normalizeRangeField(key, event) {
+  formValues[key] = normalizeLocalizedNumberRange(event.target.value)
 }
 
 function submit() {

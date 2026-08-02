@@ -17,6 +17,9 @@
         <span :dir="ltr ? 'ltr' : 'rtl'">{{ opt.label }}</span>
       </label>
     </div>
+    <div v-if="hiddenCount > 0" class="cms-tooltip" :dir="ltr ? 'ltr' : 'rtl'" role="tooltip">
+      {{ selectionSummary }}
+    </div>
   </div>
 </template>
 
@@ -41,6 +44,7 @@ const isChecked = (v) => props.modelValue.includes(v)
 const isDisabled = (v) => props.maxSelected > 0 && props.modelValue.length >= props.maxSelected && !props.modelValue.includes(v)
 const visibleChips = computed(() => props.modelValue.slice(0, props.maxChips))
 const hiddenCount = computed(() => Math.max(0, props.modelValue.length - props.maxChips))
+const selectionSummary = computed(() => props.modelValue.map(labelOf).join('، '))
 
 function togglePanel() { if (!props.disabled) open.value = !open.value }
 function toggle(v) {
@@ -59,27 +63,29 @@ function close() { open.value = false }
 </script>
 
 <style scoped>
-.cms { position: relative; display: inline-block; width: 100%; font-family: inherit; }
+.cms { position: relative; display: inline-block; width: 100%; min-width: 0; font-family: inherit; }
 .cms.disabled { opacity: .6; pointer-events: none; }
 .cms-control {
   display: flex; align-items: center; justify-content: space-between; gap: 8px;
   padding: 9px 12px; border-radius: var(--radius-md); border: 1px solid var(--border);
-  background: var(--surface); cursor: pointer; transition: all .2s; min-height: 42px;
+  width: 100%; min-width: 0; height: 44px; overflow: hidden;
+  background: var(--surface); cursor: pointer; transition: all .2s;
 }
 .cms-control:hover { border-color: var(--color-primary); }
 .cms-control:focus-within { outline: 2px solid var(--color-primary-soft); border-color: var(--color-primary); }
-.cms-values { display: flex; flex-wrap: wrap; gap: 6px; flex: 1; }
+.cms-values { display: flex; flex-wrap: nowrap; gap: 6px; flex: 1; min-width: 0; overflow: hidden; }
 .cms-chip {
   display: inline-flex; align-items: center; gap: 4px;
   padding: 3px 8px; border-radius: var(--radius-full);
   background: var(--color-primary-soft); color: var(--color-primary);
-  font-size: 12px; font-weight: 600;
+  max-width: 100%; overflow: hidden; white-space: nowrap;
+  font-size: 12px; font-weight: 600; flex: 0 1 auto;
 }
 .cms-chip i { cursor: pointer; opacity: .7; transition: opacity .2s; }
 .cms-chip i:hover { opacity: 1; }
-.cms-chip.cms-more { background: var(--surface-muted); color: var(--text-2); cursor: pointer; }
+.cms-chip.cms-more { background: var(--surface-muted); color: var(--text-2); cursor: pointer; flex-shrink: 0; }
 .cms-placeholder { color: var(--text-3); font-size: 13px; }
-.cms-arrow { color: var(--text-3); transition: transform .2s; }
+.cms-arrow { color: var(--text-3); transition: transform .2s; flex-shrink: 0; }
 .cms.open .cms-arrow { transform: rotate(180deg); }
 .cms-panel {
   position: absolute; top: calc(100% + 6px); left: 0; right: 0;
@@ -95,4 +101,17 @@ function close() { open.value = false }
 .cms-option:hover { background: var(--surface-muted); }
 .cms-option input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--color-primary); cursor: pointer; }
 .cms-option.disabled { opacity: .5; cursor: not-allowed; }
+.cms-tooltip {
+  position: absolute; right: 0; bottom: calc(100% + 7px); z-index: 520;
+  max-width: min(340px, 90vw); padding: 7px 10px;
+  border-radius: var(--radius-sm); background: var(--text-1); color: #fff;
+  box-shadow: var(--shadow-2); font-size: 11.5px; line-height: 1.7;
+  white-space: normal; overflow-wrap: anywhere; pointer-events: none;
+  opacity: 0; visibility: hidden; transform: translateY(4px);
+  transition: opacity .16s, transform .16s, visibility .16s;
+}
+.cms:hover .cms-tooltip, .cms:focus-within .cms-tooltip {
+  opacity: 1; visibility: visible; transform: translateY(0);
+}
+.cms.open .cms-tooltip { opacity: 0; visibility: hidden; }
 </style>

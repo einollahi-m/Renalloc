@@ -15,6 +15,7 @@ import DonorDetailView from '../views/DonorDetailView.vue'
 import MatchingDashboardView from '../views/MatchingDashboardView.vue'
 import VirtualCrossmatchView from '../views/VirtualCrossmatchView.vue'
 import WaitingListRecipientsView from '../views/WaitingListRecipientsView.vue'
+import UserProfileView from '../views/UserProfileView.vue'
 
 const routes = [
   { path: '/', redirect: '/login' },
@@ -32,7 +33,8 @@ const routes = [
       { path: 'donors/:id', component: DonorDetailView },
       { path: 'matching', component: MatchingDashboardView },
       { path: 'matching/virtual-crossmatch', component: VirtualCrossmatchView },
-      { path: 'waiting-list/recipients', component: WaitingListRecipientsView }
+      { path: 'waiting-list/recipients', component: WaitingListRecipientsView },
+      { path: 'profile', name: 'user-profile', component: UserProfileView }
     ]
   }
 ]

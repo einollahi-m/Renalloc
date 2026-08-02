@@ -155,8 +155,7 @@ const openLookupModal = () => {
 }
 const goToProfile = () => {
   showUserMenu.value = false
-  // TODO: navigate to user profile page
-  window.toast.add({ severity: 'info', summary: 'اطلاعات', detail: 'صفحه پروفایل کاربری به زودی اضافه می‌شود' })
+  router.push('/profile')
 }
 const logout = () => {
   showUserMenu.value = false

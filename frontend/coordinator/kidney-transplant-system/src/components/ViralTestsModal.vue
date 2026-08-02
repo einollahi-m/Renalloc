@@ -10,7 +10,7 @@
         <div class="vt-grid">
           <div v-for="test in viralTestOptions" :key="test" class="vt-row">
             <div class="vt-name">{{ test }}</div>
-            <div class="vt-input"><input type="text" class="form-input" v-model="results[test]" placeholder="مقدار" /></div>
+            <div class="vt-input"><input type="text" class="form-input" v-model="results[test]" placeholder="مقدار" @input="normalizeResult(test, $event)" /></div>
           </div>
         </div>
       </div>
@@ -25,6 +25,7 @@
 <script setup>
 import { ref, reactive, watch } from 'vue'
 import { viralTestOptions } from '../data/viralTests'
+import { normalizeLocalizedDigits } from '../utils/validation'
 
 const props = defineProps({
   visible: { type: Boolean, default: false },
@@ -60,6 +61,10 @@ function submit() {
   if (props.editDate) emit('save', { date: testDateIso, tests })
   else emit('add', tests)
   emit('update:visible', false)
+}
+
+function normalizeResult(test, event) {
+  results[test] = normalizeLocalizedDigits(event.target.value)
 }
 
 function close() { emit('update:visible', false) }

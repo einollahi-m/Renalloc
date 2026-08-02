@@ -133,7 +133,7 @@ function nextMonth() { if (viewM.value === 12) { viewM.value = 1; viewY.value++ 
 </script>
 
 <style scoped>
-.dp { position: relative; }
+.dp { position: relative; width: 100%; max-width: 220px; }
 .dp-mode { display: inline-flex; background: var(--surface-muted); border-radius: 9px; padding: 3px; gap: 2px; margin-bottom: 8px; }
 .dp-mode-btn {
   border: none; background: transparent; padding: 5px 18px; border-radius: 7px;
@@ -150,7 +150,7 @@ function nextMonth() { if (viewM.value === 12) { viewM.value = 1; viewY.value++ 
 .dp.open .dp-field { border-color: var(--color-primary); box-shadow: 0 0 0 4px rgba(14,165,233,.12); }
 .dp-field-icon { color: var(--color-primary); font-size: 18px; }
 .dp-display {
-  flex: 1; border: none; background: transparent; outline: none;
+  flex: 1; min-width: 0; border: none; background: transparent; outline: none;
   text-align: center; font-family: inherit; font-size: 14px; font-weight: 700;
   color: var(--text-1); cursor: pointer;
 }

@@ -43,3 +43,36 @@ export const normalizeIranianMobile = (v) => {
  * Validate Iranian mobile number format
  */
 export const isValidIranianMobile = (v) => /^09\d{9}$/.test(String(v || '').trim())
+
+/**
+ * Convert Persian and Arabic digits inside any input to Latin digits.
+ * Text is preserved so it can also be used for qualitative lab results.
+ */
+export const normalizeLocalizedDigits = (v) => String(v ?? '')
+  .replace(/[۰-۹]/g, d => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
+  .replace(/[٠-٩]/g, d => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
+  .replace(/٫/g, '.')
+  .replace(/٬/g, ',')
+
+/**
+ * Normalize a localized positive decimal number to one Latin representation.
+ */
+export const normalizeLocalizedNumber = (v) => {
+  const normalized = normalizeLocalizedDigits(v)
+    .replace(/[,\s]/g, '')
+    .replace(/[^0-9.]/g, '')
+  const [integer = '', ...decimals] = normalized.split('.')
+  return decimals.length ? `${integer}.${decimals.join('')}` : integer
+}
+
+/**
+ * Normalize ranges used by urine microscopy fields, for example ۱-۳ → 1-3.
+ */
+export const normalizeLocalizedNumberRange = (v) => {
+  const normalized = normalizeLocalizedDigits(v)
+    .replace(/[–—]/g, '-')
+    .replace(/\s/g, '')
+    .replace(/[^0-9.\-]/g, '')
+  const parts = normalized.split('-').slice(0, 2)
+  return parts.map(part => normalizeLocalizedNumber(part)).join('-')
+}

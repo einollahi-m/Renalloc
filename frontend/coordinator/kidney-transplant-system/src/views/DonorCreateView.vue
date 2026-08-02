@@ -1,11 +1,10 @@
 <template>
-  <div>
+  <div class="create-person-page" @input.capture="normalizeNumericInputEvent">
     <div class="page-header">
       <div>
         <div class="page-title">ثبت اهداکننده جدید</div>
         <div class="page-subtitle">اطلاعات اهداکننده را در مراحل زیر وارد کنید</div>
       </div>
-      <button class="btn btn-secondary" @click="cancel"><i class="ri-close-line"></i> انصراف</button>
     </div>
 
     <div class="card mb-4">
@@ -20,16 +19,28 @@
       </div>
     </div>
 
+    <div v-if="step < 3" class="form-actions form-actions-top">
+      <button class="btn btn-secondary" type="button" @click="prevStep" :disabled="step===0">
+        <i class="ri-arrow-right-line"></i> گام قبلی
+      </button>
+      <div class="flex gap-2">
+        <button class="btn btn-secondary" type="button" @click="cancel">انصراف</button>
+        <button class="btn btn-primary" type="button" @click="nextOrSubmit">
+          گام بعدی <i class="ri-arrow-left-line"></i>
+        </button>
+      </div>
+    </div>
+
     <!-- گام ۱: اطلاعات فردی -->
     <div v-if="step===0">
       <section class="form-card">
         <div class="form-card-title"><i class="ri-id-card-line"></i> اطلاعات هویتی</div>
-        <div class="form-grid form-grid-3">
+        <div class="form-grid identity-primary-grid">
           <div class="form-group">
             <label class="form-label">تابعیت *</label>
             <div class="radio-pills">
-              <label class="radio-pill" :class="{checked: form.citizenship==='iranian'}"><input type="radio" v-model="form.citizenship" value="iranian" /> ایرانی</label>
-              <label class="radio-pill" :class="{checked: form.citizenship==='foreign'}"><input type="radio" v-model="form.citizenship" value="foreign" /> غیر ایرانی</label>
+              <label class="radio-pill" :class="{checked: form.citizenship==='iranian'}"><input type="radio" name="donor-citizenship" v-model="form.citizenship" value="iranian" /> ایرانی</label>
+              <label class="radio-pill" :class="{checked: form.citizenship==='foreign'}"><input type="radio" name="donor-citizenship" v-model="form.citizenship" value="foreign" /> غیر ایرانی</label>
             </div>
           </div>
           <div class="form-group">
@@ -54,6 +65,8 @@
               <option v-for="n in nationalityOptions" :key="n" :value="n">{{ n }}</option>
             </select>
           </div>
+        </div>
+        <div class="form-grid identity-details-grid">
           <div class="form-group">
             <label class="form-label">نام *</label>
             <input type="text" v-model="form.first_name" class="form-input" placeholder="نام" />
@@ -65,23 +78,26 @@
           <div class="form-group">
             <label class="form-label">جنسیت *</label>
             <div class="radio-pills">
-              <label class="radio-pill" :class="{checked: form.gender==='male'}"><input type="radio" v-model="form.gender" value="male" /> مرد</label>
-              <label class="radio-pill" :class="{checked: form.gender==='female'}"><input type="radio" v-model="form.gender" value="female" /> زن</label>
+              <label class="radio-pill" :class="{checked: form.gender==='male'}"><input type="radio" name="donor-gender" v-model="form.gender" value="male" /> مرد</label>
+              <label class="radio-pill" :class="{checked: form.gender==='female'}"><input type="radio" name="donor-gender" v-model="form.gender" value="female" /> زن</label>
             </div>
           </div>
-          <div class="form-group">
+          <div class="form-group identity-birth-field">
             <dual-date-field v-model="form.birth_date" label="تاریخ تولد *" />
           </div>
-          <div class="form-group">
+          <div class="form-group identity-blood-field">
             <label class="form-label">گروه خونی *</label>
             <div class="blood-row">
               <select v-model="form.blood_type" class="form-select">
                 <option value="">انتخاب</option>
                 <option v-for="b in bloodTypeOptions" :key="b" :value="b">{{ b }}</option>
               </select>
-              <div class="radio-pills">
-                <label class="radio-pill" :class="{checked: form.rh_factor==='positive'}"><input type="radio" v-model="form.rh_factor" value="positive" /> Rh+</label>
-                <label class="radio-pill" :class="{checked: form.rh_factor==='negative'}"><input type="radio" v-model="form.rh_factor" value="negative" /> Rh-</label>
+              <div class="rh-choice-field">
+                <span class="form-label">Rh</span>
+                <div class="radio-pills radio-stack">
+                  <label class="radio-pill" :class="{checked: form.rh_factor==='positive'}"><input type="radio" name="donor-rh" v-model="form.rh_factor" value="positive" /> مثبت</label>
+                  <label class="radio-pill" :class="{checked: form.rh_factor==='negative'}"><input type="radio" name="donor-rh" v-model="form.rh_factor" value="negative" /> منفی</label>
+                </div>
               </div>
             </div>
           </div>
@@ -90,7 +106,7 @@
 
       <section class="form-card">
         <div class="form-card-title"><i class="ri-phone-line"></i> اطلاعات تماس</div>
-        <div class="form-grid">
+        <div class="form-grid contact-fields-grid">
           <div class="form-group">
             <label class="form-label">شماره موبایل</label>
             <input type="text" v-model="form.phone" class="form-input" :class="{'form-error-border':phoneErrors.phone}" @input="normalizePhone('phone',$event)" @blur="validatePhone('phone')" maxlength="11" inputmode="numeric" placeholder="09xxxxxxxxx" />
@@ -105,8 +121,8 @@
       </section>
 
       <section class="form-card">
-        <div class="form-card-title"><i class="ri-user-heart-line"></i> مشخصات فردی و سبک زندگی</div>
-        <div class="form-grid form-grid-4">
+        <div class="form-card-title"><i class="ri-user-heart-line"></i> مشخصات فردی و رفتارهای پرخطر</div>
+        <div class="form-grid personal-profile-grid">
           <div class="form-group">
             <label class="form-label">تحصیلات</label>
             <select v-model="form.education" class="form-select">
@@ -116,19 +132,28 @@
           </div>
           <div class="form-group">
             <label class="form-label">بیمه</label>
-            <checkbox-multi-select v-model="form.insurance" :options="insuranceOptions" placeholder="انتخاب بیمه" :disabled="form.citizenship==='foreign'" />
+            <checkbox-multi-select v-model="form.insurance" :options="insuranceOptions" :max-chips="1" placeholder="انتخاب بیمه" :disabled="form.citizenship==='foreign'" />
           </div>
-          <div class="form-group">
-            <label class="form-label">وزن (کیلوگرم)</label>
-            <input type="number" v-model="newWeight" class="form-input" placeholder="مقدار" step="0.1" />
+          <div class="form-group marital-status-field">
+            <label class="form-label">وضعیت تأهل</label>
+            <div class="radio-pills radio-stack">
+              <label class="radio-pill" :class="{checked: form.marital_status==='single'}"><input type="radio" name="donor-marital-status" v-model="form.marital_status" value="single" /> مجرد</label>
+              <label class="radio-pill" :class="{checked: form.marital_status==='married'}"><input type="radio" name="donor-marital-status" v-model="form.marital_status" value="married" /> متأهل</label>
+            </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">قد (سانتی‌متر)</label>
-            <input type="number" v-model="newHeight" class="form-input" placeholder="اندازه قد" />
+          <div class="form-group measures-field">
+            <div class="measure-label-row">
+              <label class="form-label" for="donor-weight">وزن (کیلوگرم)</label>
+              <label class="form-label" for="donor-height">قد (سانتی‌متر)</label>
+            </div>
+            <div class="measure-input-pair">
+              <input id="donor-weight" type="text" v-model="newWeight" class="form-input" placeholder="72.5" inputmode="decimal" @keydown.up.prevent="adjustWeight(0.5)" @keydown.down.prevent="adjustWeight(-0.5)" />
+              <input id="donor-height" type="text" v-model="newHeight" class="form-input" placeholder="175" inputmode="numeric" />
+            </div>
           </div>
         </div>
-        <div class="form-group" style="margin-bottom:0;">
-          <label class="form-label">سبک زندگی</label>
+        <div class="form-group risk-behaviors-field">
+          <label class="form-label">رفتارهای پرخطر</label>
           <div class="check-chips">
             <label class="check-chip" :class="{checked: form.is_smoker}"><input type="checkbox" v-model="form.is_smoker" /><i class="ri-cigarette-line"></i> سیگاری</label>
             <label class="check-chip" :class="{checked: form.has_addiction}"><input type="checkbox" v-model="form.has_addiction" /><i class="ri-forbid-line"></i> سابقه اعتیاد</label>
@@ -278,23 +303,9 @@
           <div class="accordion-content">
             <div class="flex justify-between items-center mb-3">
               <h4 style="margin:0;">نتایج ثبت شده</h4>
-              <button class="btn btn-sm btn-primary" type="button" @click="showRoutineModal=true"><i class="ri-add-line"></i> افزودن آزمایش جدید</button>
+              <button class="btn btn-sm btn-primary" type="button" @click="openRoutineCreate"><i class="ri-add-line"></i> افزودن آزمایش جدید</button>
             </div>
-            <div v-if="!form.routine_tests.length" class="empty-state" style="padding:22px;">
-              <i class="ri-flask-line"></i>
-              <h3>آزمایش ثبت نشده</h3>
-            </div>
-            <table v-else class="data-table">
-              <thead><tr><th>تاریخ</th><th>دسته</th><th>نام آزمایش</th><th>مقدار</th></tr></thead>
-              <tbody>
-                <tr v-for="t in form.routine_tests" :key="t.testDate+t.category+t.testName">
-                  <td>{{ formatFaDate(t.testDate) }}</td>
-                  <td>{{ t.category }}</td>
-                  <td>{{ t.testName }}</td>
-                  <td class="font-bold">{{ t.value }}</td>
-                </tr>
-              </tbody>
-            </table>
+            <test-results-list :tests="form.routine_tests" :show-category="true" empty-title="آزمایش پیوند ثبت نشده" @edit="openRoutineEdit" @remove="removeRoutineTest" />
           </div>
         </div>
       </div>
@@ -308,22 +319,9 @@
           <div class="accordion-content">
             <div class="flex justify-between items-center mb-3">
               <h4 style="margin:0;">نتایج ثبت شده</h4>
-              <button class="btn btn-sm btn-primary" type="button" @click="showViralModal=true"><i class="ri-add-line"></i> افزودن آزمایش جدید</button>
+              <button class="btn btn-sm btn-primary" type="button" @click="openViralCreate"><i class="ri-add-line"></i> افزودن آزمایش جدید</button>
             </div>
-            <div v-if="!form.viral_tests.length" class="empty-state" style="padding:22px;">
-              <i class="ri-virus-line"></i>
-              <h3>آزمایش ثبت نشده</h3>
-            </div>
-            <table v-else class="data-table">
-              <thead><tr><th>تاریخ</th><th>نام آزمایش</th><th>نتیجه</th></tr></thead>
-              <tbody>
-                <tr v-for="t in form.viral_tests" :key="t.testDate+t.testName">
-                  <td>{{ formatFaDate(t.testDate) }}</td>
-                  <td>{{ t.testName }}</td>
-                  <td class="font-bold">{{ t.value }}</td>
-                </tr>
-              </tbody>
-            </table>
+            <test-results-list :tests="form.viral_tests" icon="ri-virus-line" empty-title="آزمایش ویروسی ثبت نشده" @edit="openViralEdit" @remove="removeViralTest" />
           </div>
         </div>
       </div>
@@ -363,7 +361,7 @@
                 </div>
                 <div class="form-group">
                   <label class="form-label">کد نظام پزشکی</label>
-                  <input type="text" v-model="form.approvals[activeSpecialty].medical_code" class="form-input" placeholder="کد نظام پزشکی" />
+                  <input type="text" v-model="form.approvals[activeSpecialty].medical_code" class="form-input" placeholder="کد نظام پزشکی" inputmode="numeric" />
                 </div>
               </div>
               <div class="form-group" style="margin-bottom:0;">
@@ -376,32 +374,32 @@
       </div>
     </div>
 
-    <div class="form-actions">
-      <button class="btn btn-secondary" @click="prevStep" :disabled="step===0">
-        <i class="ri-arrow-right-line"></i> گام قبل
+    <div v-if="step===3" class="form-actions">
+      <button class="btn btn-secondary" type="button" @click="prevStep">
+        <i class="ri-arrow-right-line"></i> گام قبلی
       </button>
       <div class="flex gap-2">
-        <button class="btn btn-secondary" @click="cancel">لغو</button>
-        <button class="btn btn-primary" @click="nextOrSubmit">
-          <template v-if="step<3">گام بعد <i class="ri-arrow-left-line"></i></template>
-          <template v-else><i class="ri-save-line"></i> ثبت اهداکننده</template>
+        <button class="btn btn-secondary" type="button" @click="cancel">انصراف</button>
+        <button class="btn btn-primary" type="button" @click="nextOrSubmit">
+          <i class="ri-save-line"></i> تایید و ثبت اهدا کننده جدید
         </button>
       </div>
     </div>
 
-    <routine-tests-modal v-model:visible="showRoutineModal" :gender="form.gender" @add="addRoutineTests" />
-    <viral-tests-modal v-model:visible="showViralModal" @add="addViralTests" />
+    <routine-tests-modal v-model:visible="showRoutineModal" :gender="form.gender" :edit-date="editingRoutineDate" :existing-tests="editingRoutineTests" @add="addRoutineTests" @save="saveRoutineTests" />
+    <viral-tests-modal v-model:visible="showViralModal" :edit-date="editingViralDate" :existing-tests="editingViralTests" @add="addViralTests" @save="saveViralTests" />
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { toFaDigits, formatFaDate } from '../utils/date'
-import { nationalIdChecker, normalizeNationalId, normalizeIranianMobile, isValidIranianMobile } from '../utils/validation'
+import { nationalIdChecker, normalizeNationalId, normalizeIranianMobile, isValidIranianMobile, normalizeLocalizedDigits, normalizeLocalizedNumber } from '../utils/validation'
 import { mockRecipients } from '../data/mockData'
 import { hlaOptions } from '../data/hlaOptions'
 import { educationOptions, insuranceOptions, nationalityOptions, bloodTypeOptions, approvalStatusOptions, donorSpecialties } from '../data/options'
+import TestResultsList from '../components/TestResultsList.vue'
 
 const router = useRouter()
 const step = ref(0)
@@ -411,7 +409,7 @@ const toFa = toFaDigits
 const form = reactive({
   citizenship: 'iranian', national_id: '', first_name: '', last_name: '', gender: null,
   blood_type: null, rh_factor: null, phone: '', emergency_contact_phone: '',
-  education: null, insurance: [], nationality: '', birth_date: '',
+  education: null, insurance: [], marital_status: null, nationality: '', birth_date: '',
   is_smoker: false, has_addiction: false, has_alcohol: false,
   self_diabetes_history: false, self_hypertension_history: false,
   parent_diabetes_history: false, parent_hypertension_history: false,
@@ -436,25 +434,58 @@ const activeSpecialty = ref('nephrologist')
 const openAccordion = reactive({ hla: true, routine: true, viral: true, approvals: true })
 const showRoutineModal = ref(false)
 const showViralModal = ref(false)
+const editingRoutineDate = ref(null)
+const editingViralDate = ref(null)
 const nationalIdError = ref('')
 const nationalIdChecking = ref(false)
 const nationalIdValidated = ref(false)
 const phoneErrors = reactive({ phone: '', emergency: '' })
 const recipientSummary = ref(null)
 const recipientLookupMessage = ref('')
+let nationalIdValidationToken = 0
 
 const isNationalIdValid = computed(() => form.citizenship === 'iranian' && nationalIdValidated.value && !nationalIdError.value)
+const editingRoutineTests = computed(() => editingRoutineDate.value ? form.routine_tests.filter(test => test.testDate === editingRoutineDate.value) : [])
+const editingViralTests = computed(() => editingViralDate.value ? form.viral_tests.filter(test => test.testDate === editingViralDate.value) : [])
+
+watch(() => form.citizenship, (citizenship) => {
+  nationalIdValidationToken++
+  form.national_id = ''
+  nationalIdError.value = ''
+  nationalIdChecking.value = false
+  nationalIdValidated.value = false
+  if (citizenship === 'iranian') form.nationality = ''
+  else form.insurance = []
+})
+
+const normalizeNumericInputEvent = event => {
+  const input = event.target
+  if (!input || input.tagName !== 'INPUT') return
+  const inputMode = input.getAttribute('inputmode')
+  let normalized = input.value
+  if (inputMode === 'numeric') normalized = normalizeLocalizedDigits(input.value).replace(/\D/g, '')
+  else if (inputMode === 'decimal') normalized = normalizeLocalizedNumber(input.value)
+  if (normalized !== input.value) input.value = normalized
+}
+
+const adjustWeight = delta => {
+  const current = Number(normalizeLocalizedNumber(newWeight.value)) || 0
+  newWeight.value = String(Math.max(0, Math.round((current + delta) * 2) / 2))
+}
 
 const normalizeAndValidateNationalId = (e) => {
+  const validationToken = ++nationalIdValidationToken
   if (form.citizenship === 'foreign') {
     form.national_id = e.target.value.trim().toUpperCase()
     nationalIdError.value = ''
+    nationalIdChecking.value = false
     nationalIdValidated.value = false
     return
   }
   const val = normalizeNationalId(e.target.value).slice(0, 10)
   form.national_id = val
   nationalIdError.value = ''
+  nationalIdChecking.value = false
   nationalIdValidated.value = false
   if (val.length > 0 && val.length < 10) {
     nationalIdError.value = 'کد ملی باید ۱۰ رقم باشد'
@@ -463,6 +494,7 @@ const normalizeAndValidateNationalId = (e) => {
   if (val.length === 10) {
     nationalIdChecking.value = true
     setTimeout(() => {
+      if (validationToken !== nationalIdValidationToken || form.citizenship !== 'iranian' || form.national_id !== val) return
       const valid = nationalIdChecker(val)
       nationalIdError.value = valid ? '' : 'کد ملی نامعتبر است'
       nationalIdValidated.value = valid
@@ -472,6 +504,8 @@ const normalizeAndValidateNationalId = (e) => {
 }
 
 const validateNationalIdField = () => {
+  nationalIdValidationToken++
+  nationalIdChecking.value = false
   if (form.citizenship !== 'iranian') {
     nationalIdError.value = ''
     nationalIdValidated.value = false
@@ -500,17 +534,18 @@ const normalizePhone = (field, e) => {
 }
 
 const validatePhone = (field) => {
-  const key = field === 'phone' ? 'phone' : 'emergency'
-  const val = normalizeIranianMobile(form[key])
+  const errorKey = field === 'phone' ? 'phone' : 'emergency'
+  const formKey = field === 'phone' ? 'phone' : 'emergency_contact_phone'
+  const val = normalizeIranianMobile(form[formKey])
   if (!val) {
-    phoneErrors[key] = ''
+    phoneErrors[errorKey] = ''
     return true
   }
   if (!isValidIranianMobile(val)) {
-    phoneErrors[key] = 'شماره موبایل باید ۱۱ رقم و با 09 شروع شود'
+    phoneErrors[errorKey] = 'شماره موبایل باید ۱۱ رقم و با 09 شروع شود'
     return false
   }
-  phoneErrors[key] = ''
+  phoneErrors[errorKey] = ''
   return true
 }
 
@@ -523,7 +558,7 @@ const normalizeRecipientIdentifier = (e) => {
 const lookupRecipientByNationalId = () => {
   const query = normalizeNationalId(form.preferred_recipient_national_id).trim().toUpperCase()
   if (!query) {
-    window.window.toast.add({ severity: 'warning', summary: 'خطا', detail: 'کد ملی گیرنده را وارد کنید' })
+    window.toast.add({ severity: 'warning', summary: 'خطا', detail: 'کد ملی گیرنده را وارد کنید' })
     return
   }
   if (form.citizenship === 'iranian' && !/^\d{10}$/.test(query)) {
@@ -551,7 +586,29 @@ const addRoutineTests = (tests) => {
   const existingSet = new Set(form.routine_tests.map(t => `${t.testDate}|${t.category}|${t.testName}`))
   const newTests = tests.filter(t => !existingSet.has(`${t.testDate}|${t.category}|${t.testName}`))
   form.routine_tests.push(...newTests)
-  window.window.toast.add({ severity: 'success', summary: 'موفق', detail: `${toFa(newTests.length)} آزمایش ثبت شد` })
+  window.toast.add({ severity: 'success', summary: 'موفق', detail: `${toFa(newTests.length)} آزمایش ثبت شد` })
+}
+
+const openRoutineCreate = () => {
+  editingRoutineDate.value = null
+  showRoutineModal.value = true
+}
+
+const openRoutineEdit = (date) => {
+  editingRoutineDate.value = date
+  showRoutineModal.value = true
+}
+
+const saveRoutineTests = ({ tests }) => {
+  const remaining = form.routine_tests.filter(test => test.testDate !== editingRoutineDate.value)
+  form.routine_tests.splice(0, form.routine_tests.length, ...remaining, ...tests)
+  editingRoutineDate.value = null
+  window.toast.add({ severity: 'success', summary: 'موفق', detail: 'آزمایش‌ها ویرایش شدند' })
+}
+
+const removeRoutineTest = (test) => {
+  const index = form.routine_tests.indexOf(test)
+  if (index >= 0) form.routine_tests.splice(index, 1)
 }
 
 const addViralTests = (tests) => {
@@ -559,7 +616,29 @@ const addViralTests = (tests) => {
   const existingSet = new Set(form.viral_tests.map(t => `${t.testDate}|${t.testName}`))
   const newTests = tests.filter(t => !existingSet.has(`${t.testDate}|${t.testName}`))
   form.viral_tests.push(...newTests)
-  window.window.toast.add({ severity: 'success', summary: 'موفق', detail: `${toFa(newTests.length)} آزمایش ویروسی ثبت شد` })
+  window.toast.add({ severity: 'success', summary: 'موفق', detail: `${toFa(newTests.length)} آزمایش ویروسی ثبت شد` })
+}
+
+const openViralCreate = () => {
+  editingViralDate.value = null
+  showViralModal.value = true
+}
+
+const openViralEdit = (date) => {
+  editingViralDate.value = date
+  showViralModal.value = true
+}
+
+const saveViralTests = ({ tests }) => {
+  const remaining = form.viral_tests.filter(test => test.testDate !== editingViralDate.value)
+  form.viral_tests.splice(0, form.viral_tests.length, ...remaining, ...tests)
+  editingViralDate.value = null
+  window.toast.add({ severity: 'success', summary: 'موفق', detail: 'آزمایش‌های ویروسی ویرایش شدند' })
+}
+
+const removeViralTest = (test) => {
+  const index = form.viral_tests.indexOf(test)
+  if (index >= 0) form.viral_tests.splice(index, 1)
 }
 
 const goToStep = (idx) => {
@@ -569,25 +648,29 @@ const goToStep = (idx) => {
 const nextStep = () => {
   if (step.value === 0) {
     if (!form.first_name || !form.last_name) {
-      window.window.toast.add({ severity: 'warning', summary: 'خطا', detail: 'نام و نام خانوادگی الزامی است' })
+      window.toast.add({ severity: 'warning', summary: 'خطا', detail: 'نام و نام خانوادگی الزامی است' })
       return
     }
     if (!form.national_id) {
-      window.window.toast.add({ severity: 'warning', summary: 'خطا', detail: 'کد ملی/پاسپورت الزامی است' })
+      window.toast.add({ severity: 'warning', summary: 'خطا', detail: 'کد ملی/پاسپورت الزامی است' })
       return
     }
     if (form.citizenship === 'iranian' && !validateNationalIdField()) return
+    if (!form.gender) {
+      window.toast.add({ severity: 'warning', summary: 'خطا', detail: 'انتخاب جنسیت الزامی است' })
+      return
+    }
     if (!form.birth_date) {
-      window.window.toast.add({ severity: 'warning', summary: 'خطا', detail: 'تاریخ تولد الزامی است' })
+      window.toast.add({ severity: 'warning', summary: 'خطا', detail: 'تاریخ تولد الزامی است' })
       return
     }
     if (!form.blood_type || !form.rh_factor) {
-      window.window.toast.add({ severity: 'warning', summary: 'خطا', detail: 'گروه خونی الزامی است' })
+      window.toast.add({ severity: 'warning', summary: 'خطا', detail: 'گروه خونی الزامی است' })
       return
     }
     if (!validatePhone('phone') || !validatePhone('emergency')) return
     if (form.is_related_recipient_candidate && !form.preferred_recipient_national_id) {
-      window.window.toast.add({ severity: 'warning', summary: 'خطا', detail: 'کد ملی گیرنده مورد نظر الزامی است' })
+      window.toast.add({ severity: 'warning', summary: 'خطا', detail: 'کد ملی گیرنده مورد نظر الزامی است' })
       return
     }
   }
@@ -600,7 +683,7 @@ const nextOrSubmit = () => {
     nextStep()
     return
   }
-  window.window.toast.add({ severity: 'success', summary: 'موفق', detail: 'اهداکننده با موفقیت ثبت شد' })
+  window.toast.add({ severity: 'success', summary: 'موفق', detail: 'اهداکننده با موفقیت ثبت شد' })
   setTimeout(() => router.push('/donors'), 800)
 }
 
