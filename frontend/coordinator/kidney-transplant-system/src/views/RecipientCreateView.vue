@@ -595,7 +595,7 @@ const validatePhone = (field) => {
 
 const addAntiHlaAntibodies = () => {
   if (!antiHlaForm.testDate) {
-    toast.add({ severity: 'warning', summary: 'خطا', detail: 'تاریخ آزمایش الزامی است' })
+    window.toast.add({ severity: 'warning', summary: 'خطا', detail: 'تاریخ آزمایش الزامی است' })
     return
   }
   const add = (locus, selected, cls) => {
@@ -623,7 +623,7 @@ const addAntiHlaAntibodies = () => {
   antiHlaForm.selectedDQB1 = []
   antiHlaForm.selectedDRB345 = []
   antiHlaForm.testDate = ''
-  toast.add({ severity: 'success', summary: 'موفق', detail: 'آنتی‌بادی‌ها ثبت شدند' })
+  window.toast.add({ severity: 'success', summary: 'موفق', detail: 'آنتی‌بادی‌ها ثبت شدند' })
 }
 
 const addRoutineTests = (tests) => {
@@ -631,7 +631,7 @@ const addRoutineTests = (tests) => {
   const existingSet = new Set(form.routine_tests.map(t => `${t.testDate}|${t.category}|${t.testName}`))
   const newTests = tests.filter(t => !existingSet.has(`${t.testDate}|${t.category}|${t.testName}`))
   form.routine_tests.push(...newTests)
-  toast.add({ severity: 'success', summary: 'موفق', detail: `${toFa(newTests.length)} آزمایش ثبت شد` })
+  window.toast.add({ severity: 'success', summary: 'موفق', detail: `${toFa(newTests.length)} آزمایش ثبت شد` })
 }
 
 const addViralTests = (tests) => {
@@ -639,7 +639,7 @@ const addViralTests = (tests) => {
   const existingSet = new Set(form.viral_tests.map(t => `${t.testDate}|${t.testName}`))
   const newTests = tests.filter(t => !existingSet.has(`${t.testDate}|${t.testName}`))
   form.viral_tests.push(...newTests)
-  toast.add({ severity: 'success', summary: 'موفق', detail: `${toFa(newTests.length)} آزمایش ویروسی ثبت شد` })
+  window.toast.add({ severity: 'success', summary: 'موفق', detail: `${toFa(newTests.length)} آزمایش ویروسی ثبت شد` })
 }
 
 const goToStep = (idx) => { if (idx <= step.value) step.value = idx }
@@ -647,20 +647,20 @@ const goToStep = (idx) => { if (idx <= step.value) step.value = idx }
 const nextStep = () => {
   if (step.value === 0) {
     if (!form.first_name || !form.last_name) {
-      toast.add({ severity: 'warning', summary: 'خطا', detail: 'نام و نام خانوادگی الزامی است' })
+      window.toast.add({ severity: 'warning', summary: 'خطا', detail: 'نام و نام خانوادگی الزامی است' })
       return
     }
     if (!form.national_id) {
-      toast.add({ severity: 'warning', summary: 'خطا', detail: 'کد ملی/پاسپورت الزامی است' })
+      window.toast.add({ severity: 'warning', summary: 'خطا', detail: 'کد ملی/پاسپورت الزامی است' })
       return
     }
     if (form.citizenship === 'iranian' && !validateNationalIdField()) return
     if (!form.birth_date) {
-      toast.add({ severity: 'warning', summary: 'خطا', detail: 'تاریخ تولد الزامی است' })
+      window.toast.add({ severity: 'warning', summary: 'خطا', detail: 'تاریخ تولد الزامی است' })
       return
     }
     if (!form.blood_type || !form.rh_factor) {
-      toast.add({ severity: 'warning', summary: 'خطا', detail: 'گروه خونی الزامی است' })
+      window.toast.add({ severity: 'warning', summary: 'خطا', detail: 'گروه خونی الزامی است' })
       return
     }
     if (!validatePhone('phone') || !validatePhone('emergency')) return
@@ -674,7 +674,7 @@ const nextOrSubmit = () => {
     nextStep()
     return
   }
-  toast.add({ severity: 'success', summary: 'موفق', detail: 'گیرنده با موفقیت ثبت شد' })
+  window.toast.add({ severity: 'success', summary: 'موفق', detail: 'گیرنده با موفقیت ثبت شد' })
   setTimeout(() => router.push('/recipients'), 800)
 }
 

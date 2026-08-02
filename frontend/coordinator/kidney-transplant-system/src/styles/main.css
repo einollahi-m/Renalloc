@@ -247,6 +247,27 @@ html, body {
   display: flex; align-items: center; justify-content: center;
   border: 2px solid #fff;
 }
+/* User dropdown in header */
+.user-dropdown { position: relative; }
+.user-btn { width: auto; padding: 0 8px 0 6px; gap: 6px; }
+.dropdown-menu {
+  position: absolute; top: calc(100% + 8px); left: 0;
+  min-width: 170px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: var(--radius-md);
+  box-shadow: var(--shadow-3); z-index: 50;
+  padding: 6px; overflow: hidden;
+  animation: slideDown .2s ease;
+}
+@keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+.dropdown-item {
+  width: 100%; display: flex; align-items: center; gap: 10px;
+  padding: 9px 11px; border-radius: var(--radius-sm);
+  background: transparent; border: none; cursor: pointer;
+  font-family: inherit; font-size: 13px; font-weight: 500;
+  color: var(--text-2); text-align: right; transition: all .2s;
+}
+.dropdown-item:hover { background: var(--surface-muted); color: var(--color-primary); }
+.dropdown-item i { font-size: 18px; }
 .content { padding: 24px; flex: 1; }
 
 /* ===================== ۵) اجزای صفحه ===================== */
@@ -733,7 +754,7 @@ html, body {
 /* ---- استعلام کد ملی ---- */
 .lookup-result { padding: 16px; background: var(--surface-muted); border-radius: var(--radius-lg); border: 1px solid var(--border); margin-top: 12px; }
 .lookup-result-header { display: flex; align-items: center; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); margin-bottom: 12px; }
-.lookup-info { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 12px; }
+.lookup-info { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 12px; }
 .lookup-info-item { display: flex; flex-direction: column; gap: 3px; }
 .lookup-info-item .label { font-size: 11px; color: var(--text-3); }
 .lookup-info-item .value { font-size: 13px; font-weight: 600; }
