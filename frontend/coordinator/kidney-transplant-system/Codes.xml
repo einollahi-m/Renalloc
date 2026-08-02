@@ -1,0 +1,2148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="kidney-transplant-system">
+  <metadata>
+    <generated>2026-08-02T10:15:57.122239</generated>
+    <total_files>25</total_files>
+    <total_lines>1972</total_lines>
+    <total_size_bytes>67791</total_size_bytes>
+    <estimated_tokens>869</estimated_tokens>
+  </metadata>
+  <tree>
+    <![CDATA[
+kidney-transplant-system/
+├── src/
+│   ├── components/
+│   │   └── ToastContainer.vue
+│   ├── composables/
+│   │   └── useToast.js
+│   ├── directives/
+│   │   └── clickOutside.js
+│   ├── layouts/
+│   │   └── MainLayout.vue
+│   ├── router/
+│   │   └── index.js
+│   ├── styles/
+│   │   └── main.css
+│   ├── utils/
+│   │   ├── date.js
+│   │   └── validation.js
+│   ├── views/
+│   │   ├── DashboardView.vue
+│   │   ├── DonorCreateView.vue
+│   │   ├── DonorDetailView.vue
+│   │   ├── DonorListView.vue
+│   │   ├── LoginView.vue
+│   │   ├── MatchingDashboardView.vue
+│   │   ├── RecipientCreateView.vue
+│   │   ├── RecipientDetailView.vue
+│   │   ├── RecipientListView.vue
+│   │   ├── VirtualCrossmatchView.vue
+│   │   └── WaitingListRecipientsView.vue
+│   ├── App.vue
+│   └── main.js
+├── index.html
+├── package-lock.json
+├── package.json
+└── vite.config.js
+    ]]>
+  </tree>
+  <files>
+    <file path="index.html" lines="15" size="579" encoding="utf-8">
+      <![CDATA[
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>سامانه جامع پیوند کلیه</title>
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.1.0/fonts/remixicon.css">
+</head>
+<body>
+  <div id="app"></div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
+
+      ]]>
+    </file>
+    <file path="package-lock.json" lines="1126" size="37738" encoding="utf-8">
+      <![CDATA[
+{
+  "name": "kidney-transplant-system",
+  "version": "1.0.0",
+  "lockfileVersion": 3,
+  "requires": true,
+  "packages": {
+    "": {
+      "name": "kidney-transplant-system",
+      "version": "1.0.0",
+      "license": "ISC",
+      "dependencies": {
+        "jalaali-js": "^2.0.0",
+        "vue": "^3.5.40",
+        "vue-router": "^4.6.4"
+      },
+      "devDependencies": {
+        "@vitejs/plugin-vue": "^6.0.8",
+        "vite": "^8.2.0"
+      }
+    },
+    "node_modules/@babel/helper-string-parser": {
+      "version": "7.29.7",
+      "resolved": "https://registry.npmjs.org/@babel/helper-string-parser/-/helper-string-parser-7.29.7.tgz",
+      "integrity": "sha512-Pb5ijPrZ89GDH8223L4UP8i6QApWxs04RbPQJTeWDV0/keR2E36MeKnyr6LYmUUvqRRI+Iv87SuF1W6ErINzYw==",
+      "license": "MIT",
+      "engines": {
+        "node": ">=6.9.0"
+      }
+    },
+    "node_modules/@babel/helper-validator-identifier": {
+      "version": "7.29.7",
+      "resolved": "https://registry.npmjs.org/@babel/helper-validator-identifier/-/helper-validator-identifier-7.29.7.tgz",
+      "integrity": "sha512-qehxGkRj55h/ff8EMaJ+cYhyaKlHIxqYDn682wQD7RNp9UujOQsHog2uS0r2vzr4pW+sXf90NeeayjcNaX3fFg==",
+      "license": "MIT",
+      "engines": {
+        "node": ">=6.9.0"
+      }
+    },
+    "node_modules/@babel/parser": {
+      "version": "7.29.8",
+      "resolved": "https://registry.npmjs.org/@babel/parser/-/parser-7.29.8.tgz",
+      "integrity": "sha512-E8lTAYNB1KW+FH+VGJuZM1ioAx2E6oVlvQFRrf5P8ZZmsiJXYAD9vTFV7yyEURNzgh1dFqMZuO6tUwcARbqFCA==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/types": "^7.29.8"
+      },
+      "bin": {
+        "parser": "bin/babel-parser.js"
+      },
+      "engines": {
+        "node": ">=6.0.0"
+      }
+    },
+    "node_modules/@babel/types": {
+      "version": "7.29.8",
+      "resolved": "https://registry.npmjs.org/@babel/types/-/types-7.29.8.tgz",
+      "integrity": "sha512-Vj1jF3cPfxg7OAfoI7QnVKLoILlm2JF9pnVHrX8qx7AHMiYWT+NDAA7jChlNgRS4WTLc/fD1lXLmPixluj+3Gg==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/helper-string-parser": "^7.29.7",
+        "@babel/helper-validator-identifier": "^7.29.7"
+      },
+      "engines": {
+        "node": ">=6.9.0"
+      }
+    },
+    "node_modules/@emnapi/core": {
+      "version": "2.0.0-alpha.3",
+      "resolved": "https://registry.npmjs.org/@emnapi/core/-/core-2.0.0-alpha.3.tgz",
+      "integrity": "sha512-AZypUeJ/yByuxyS7BlSNRDOMLMlROYtjYdIAuBmJssVz1UJDSeYxLrdizhXCFYhedC5bqd/ASy8EuNXbVVXp9g==",
+      "dev": true,
+      "license": "MIT",
+      "optional": true,
+      "dependencies": {
+        "@emnapi/wasi-threads": "2.0.1",
+        "tslib": "^2.4.0"
+      }
+    },
+    "node_modules/@emnapi/runtime": {
+      "version": "2.0.0-alpha.3",
+      "resolved": "https://registry.npmjs.org/@emnapi/runtime/-/runtime-2.0.0-alpha.3.tgz",
+      "integrity": "sha512-hFPAhMUjJD9BSyCANEISPOogeXC9Zo9ZQl7L6vKnaVsMkCtzznaW/naYypeyl0Gv5rYfWYsZbpixTMpjDJzQeA==",
+      "dev": true,
+      "license": "MIT",
+      "optional": true,
+      "dependencies": {
+        "tslib": "^2.4.0"
+      }
+    },
+    "node_modules/@emnapi/wasi-threads": {
+      "version": "2.0.1",
+      "resolved": "https://registry.npmjs.org/@emnapi/wasi-threads/-/wasi-threads-2.0.1.tgz",
+      "integrity": "sha512-9DsSk+o5NBX0CCJT8s0EROGSGxjR/tKu6aBTaVyq+SjAEQH4XcdcRxPBRzsBLizTTJ49MJjF+jgu3qnO9GLQcQ==",
+      "dev": true,
+      "license": "MIT",
+      "optional": true,
+      "dependencies": {
+        "tslib": "^2.4.0"
+      }
+    },
+    "node_modules/@jridgewell/sourcemap-codec": {
+      "version": "1.5.5",
+      "resolved": "https://registry.npmjs.org/@jridgewell/sourcemap-codec/-/sourcemap-codec-1.5.5.tgz",
+      "integrity": "sha512-cYQ9310grqxueWbl+WuIUIaiUaDcj7WOq5fVhEljNVgRfOUhY9fy2zTvfoqWsnebh8Sl70VScFbICvJnLKB0Og==",
+      "license": "MIT"
+    },
+    "node_modules/@napi-rs/wasm-runtime": {
+      "version": "1.2.2",
+      "resolved": "https://registry.npmjs.org/@napi-rs/wasm-runtime/-/wasm-runtime-1.2.2.tgz",
+      "integrity": "sha512-JfB4kuJQjaoHuCTseIINHtHWeJnvgEcxjwA5t/Y00ZgaOO1Crz3fjT/p8kT28zA/Caz7oiUMn3d6H2yOVCVwuw==",
+      "dev": true,
+      "license": "MIT",
+      "optional": true,
+      "dependencies": {
+        "@tybys/wasm-util": "^0.10.3"
+      },
+      "engines": {
+        "node": "^20.19.0 || ^22.13.0 || >=23.5.0"
+      },
+      "funding": {
+        "type": "github",
+        "url": "https://github.com/sponsors/Brooooooklyn"
+      },
+      "peerDependencies": {
+        "@emnapi/core": "^1.7.1 || ^2.0.0-alpha.3",
+        "@emnapi/runtime": "^1.7.1 || ^2.0.0-alpha.3"
+      }
+    },
+    "node_modules/@oxc-project/types": {
+      "version": "0.142.0",
+      "resolved": "https://registry.npmjs.org/@oxc-project/types/-/types-0.142.0.tgz",
+      "integrity": "sha512-7W+2q5AKQVU36fkaryontrHn3YDt1RyUYXatw9i5H8ocYe2sPKSFB6eS8WNPeRKiN1qAWWZUPm7gwFzJGrccqQ==",
+      "dev": true,
+      "license": "MIT",
+      "funding": {
+        "url": "https://github.com/sponsors/Boshen"
+      }
+    },
+    "node_modules/@rolldown/binding-android-arm64": {
+      "version": "1.2.1",
+      "resolved": "https://registry.npmjs.org/@rolldown/binding-android-arm64/-/binding-android-arm64-1.2.1.tgz",
+      "integrity": "sha512-02hOeOSryYxVrOIphmLAsqnCJWxwlzFk+pEt/N/i6OgT3lShHO7xGCU5cpgchRDHboAEbSjzgGh+O/u1GswQmA==",
+      "cpu": [
+        "arm64"
+      ],
+      "dev": true,
+      "license": "MIT",
+      "optional": true,
+      "os": [
+        "android"
+      ],
+      "engines": {
+        "node": "^20.19.0 || >=22.12.0"
+      }
+    },
+    "node_modules/@rolldown/binding-darwin-arm64": {
+      "version": "1.2.1",
+      "resolved": "https://registry.npmjs.org/@rolldown/binding-darwin-arm64/-/binding-darwin-arm64-1.2.1.tgz",
+      "integrity": "sha512-fMsTOnN0OjFm3CyppWPitKnc8UlliVARUULW6cfU6AIqjdtgmSFWSk9vecHzZduv/yMWIHDlRhM1e8Iff9uAfA==",
+      "cpu": [
+        "arm64"
+      ],
+      "dev": true,
+      "license": "MIT",
+      "optional": true,
+      "os": [
+        "darwin"
+      ],
+      "engines": {
+        "node": "^20.19.0 || >=22.12.0"
+      }
+    },
+    "node_modules/@rolldown/binding-darwin-x64": {
+      "version": "1.2.1",
+      "resolved": "https://registry.npmjs.org/@rolldown/binding-darwin-x64/-/binding-darwin-x64-1.2.1.tgz",
+      "integrity": "sha512-1wjKdz/XLGKHaTNHjQveQ/B23TKx4ItAqm1JbyVuvNPc4Ze0Fb48s49TAd/2zcplPl8okE/UbTgmlVfwT7eFeQ==",
+      "cpu": [
+        "x64"
+      ],
+      "dev": true,
+      "license": "MIT",
+      "optional": true,
+      "os": [
+        "darwin"
+      ],
+      "engines": {
+        "node": "^20.19.0 || >=22.12.0"
+      }
+    },
+    "node_modules/@rolldown/binding-freebsd-x64": {
+      "version": "1.2.1",
+      "resolved": "https://registry.npmjs.org/@rolldown/binding-freebsd-x64/-/binding-freebsd-x64-1.2.1.tgz",
+      "integrity": "sha512-Fa0jHR07E7YBN4vOEsbVf2briYNsuOowfLJaXULZM0ldMlaCaj2LJgLMbMe4iacRyZmvR8efFhgR9wKuGclQUg==",
+      "cpu": [
+        "x64"
+      ],
+      "dev": true,
+      "license": "MIT",
+      "optional": true,
+      "os": [
+        "freebsd"
+      ],
+      "engines": {
+        "node": "^20.19.0 || >=22.12.0"
+      }
+    },
+    "node_modules/@rolldown/binding-linux-arm-gnueabihf": {
+      "version": "1.2.1",
+      "resolved": "https://registry.npmjs.org/@rolldown/binding-linux-arm-gnueabihf/-/binding-linux-arm-gnueabihf-1.2.1.tgz",
+      "integrity": "sha512-pzkgu1SSHGgRRyRZ4fbmSgmajbVt+epaLP99NDjFft69v/ypfTi6swBMiVdh2EkQ0OSnHE1lZDM7DRGkyAzUpA==",
+      "cpu": [
+        "arm"
+      ],
+      "dev": true,
+      "license": "MIT",
+      "optional": true,
+      "os": [
+        "linux"
+      ],
+      "engines": {
+        "node": "^20.19.0 || >=22.12.0"
+      }
+    },
+    "node_modules/@rolldown/binding-linux-arm64-gnu": {
+      "version": "1.2.1",
+      "resolved": "https://registry.npmjs.org/@rolldown/binding-linux-arm64-gnu/-/binding-linux-arm64-gnu-1.2.1.tgz",
+      "integrity": "sha512-QI5SEDY8cbiYWHx0VO4vIc3UlS6a32vXHjU8Qy/17adEmZIPuByJg13UEvo9c/UCiUkdcVWY83C+b+JrwnNyUg==",
+      "cpu": [
+        "arm64"
+      ],
+      "dev": true,
+      "license": "MIT",
+      "optional": true,
+      "os": [
+        "linux"
+      ],
+      "engines": {
+        "node": "^20.19.0 || >=22.12.0"
+      }
+    },
+    "node_modules/@rolldown/binding-linux-arm64-musl": {
+      "version": "1.2.1",
+      "resolved": "https://registry.npmjs.org/@rolldown/binding-linux-arm64-musl/-/binding-linux-arm64-musl-1.2.1.tgz",
+      "integrity": "sha512-Sm41FyCeXqmYcERoYOCbGIL5hNfd8w9LQ7Y61Bev48HkcjaJqV/iiVOaiDxjVTRMS+QKrZmD8cfPt4uMVnvM+A==",
+      "cpu": [
+        "arm64"
+      ],
+      "dev": true,
+      "license": "MIT",
+      "optional": true,
+      "os": [
+        "linux"
+      ],
+      "engines": {
+        "node": "^20.19.0 || >=22.12.0"
+      }
+    },
+    "node_modules/@rolldown/binding-linux-ppc64-gnu": {
+      "version": "1.2.1",
+      "resolved": "https://registry.npmjs.org/@rolldown/binding-linux-ppc64-gnu/-/binding-linux-ppc64-gnu-1.2.1.tgz",
+      "integrity": "sha512-2x+WhXTGl9yJYPbltW/BSEPTVz9OIWQyER4N+gJEDWkkn904eRcBzELqh/Hf7K0w/ubGbKNMv0ZC+94QK/IFEg==",
+      "cpu": [
+        "ppc64"
+      ],
+      "dev": true,
+      "license": "MIT",
+      "optional": true,
+      "os": [
+        "linux"
+      ],
+      "engines": {
+        "node": "^20.19.0 || >=22.12.0"
+      }
+    },
+    "node_modules/@rolldown/binding-linux-s390x-gnu": {
+      "version": "1.2.1",
+      "resolved": "https://registry.npmjs.org/@rolldown/binding-linux-s390x-gnu/-/binding-linux-s390x-gnu-1.2.1.tgz",
+      "integrity": "sha512-eEjmQpuRQayHPWWnywaWHkFT3ToPbP3RYy42VVd/B9aBGDA+Ol25EIWHxKQST3IiWJjikCWUF7KtbfqwZrzVwQ==",
+      "cpu": [
+        "s390x"
+      ],
+      "dev": true,
+      "license": "MIT",
+      "optional": true,
+      "os": [
+        "linux"
+      ],
+      "engines": {
+        "node": "^20.19.0 || >=22.12.0"
+      }
+    },
+    "node_modules/@rolldown/binding-linux-x64-gnu": {
+      "version": "1.2.1",
+      "resolved": "https://registry.npmjs.org/@rolldown/binding-linux-x64-gnu/-/binding-linux-x64-gnu-1.2.1.tgz",
+      "integrity": "sha512-/Orga1fZYkLc/56jBICcHrKchl8Z2UKdDSr3LG9ToWO1lQ6a4Livk9Xz+9WN91zsz5QR3XQz2NNoSDEvP6qadw==",
+      "cpu": [
+        "x64"
+      ],
+      "dev": true,
+      "license": "MIT",
+      "optional": true,
+      "os": [
+        "linux"
+      ],
+      "engines": {
+        "node": "^20.19.0 || >=22.12.0"
+      }
+    },
+    "node_modules/@rolldown/binding-linux-x64-musl": {
+      "version": "1.2.1",
+      "resolved": "https://registry.npmjs.org/@rolldown/binding-linux-x64-musl/-/binding-linux-x64-musl-1.2.1.tgz",
+      "integrity": "sha512-xxBJRL+0q0Kce7orznGWLuylHDY65vuARXZRpX+hPdv+DqK2c3NlCsVA98tlWzWNEE7yPqA/1NQ5nnCrj49Y5A==",
+      "cpu": [
+        "x64"
+      ],
+      "dev": true,
+      "license": "MIT",
+      "optional": true,
+      "os": [
+        "linux"
+      ],
+      "engines": {
+        "node": "^20.19.0 || >=22.12.0"
+      }
+    },
+    "node_modules/@rolldown/binding-openharmony-arm64": {
+      "version": "1.2.1",
+      "resolved": "https://registry.npmjs.org/@rolldown/binding-openharmony-arm64/-/binding-openharmony-arm64-1.2.1.tgz",
+      "integrity": "sha512-M6AdXIXw3s+/8XpKMzdGDEXGS1S7kwUsy+rcTIUIOx5Ge4nXKCtAFHFV9YKkXvGcC5WMoTjAteLzlsQROVI0Yw==",
+      "cpu": [
+        "arm64"
+      ],
+      "dev": true,
+      "license": "MIT",
+      "optional": true,
+      "os": [
+        "openharmony"
+      ],
+      "engines": {
+        "node": "^20.19.0 || >=22.12.0"
+      }
+    },
+    "node_modules/@rolldown/binding-wasm32-wasi": {
+      "version": "1.2.1",
+      "resolved": "https://registry.npmjs.org/@rolldown/binding-wasm32-wasi/-/binding-wasm32-wasi-1.2.1.tgz",
+      "integrity": "sha512-/TX0SoRGojHzSAHpfVBbavRVSazg5U3h3Y3VXfcc0cdugq6kxdqw8LPGFiPr+/7gE/60zRcsOY2Vi9b9eT0jww==",
+      "dev": true,
+      "license": "MIT",
+      "optional": true,
+      "dependencies": {
+        "@emnapi/core": "2.0.0-alpha.3",
+        "@emnapi/runtime": "2.0.0-alpha.3",
+        "@napi-rs/wasm-runtime": "^1.2.0"
+      },
+      "engines": {
+        "node": "^20.19.0 || ^22.13.0 || >=23.5.0"
+      }
+    },
+    "node_modules/@rolldown/binding-win32-arm64-msvc": {
+      "version": "1.2.1",
+      "resolved": "https://registry.npmjs.org/@rolldown/binding-win32-arm64-msvc/-/binding-win32-arm64-msvc-1.2.1.tgz",
+      "integrity": "sha512-EvRrivJieyHG+AO9lleZWgq+g0+S7oV2C51yuqlcyU/R9net+sI4Pj0F+lUoP2bEr6TWX3SqFaaS0SzfLxSzkw==",
+      "cpu": [
+        "arm64"
+      ],
+      "dev": true,
+      "license": "MIT",
+      "optional": true,
+      "os": [
+        "win32"
+      ],
+      "engines": {
+        "node": "^20.19.0 || >=22.12.0"
+      }
+    },
+    "node_modules/@rolldown/binding-win32-x64-msvc": {
+      "version": "1.2.1",
+      "resolved": "https://registry.npmjs.org/@rolldown/binding-win32-x64-msvc/-/binding-win32-x64-msvc-1.2.1.tgz",
+      "integrity": "sha512-Z4eCmn5QJ/5+azF9knpLWKfVd9aidn0mAe9TpJgvBLId9Ax3t0+JVxBmT25Bv7NBbVW1TZyKjQjQReouMeH5UQ==",
+      "cpu": [
+        "x64"
+      ],
+      "dev": true,
+      "license": "MIT",
+      "optional": true,
+      "os": [
+        "win32"
+      ],
+      "engines": {
+        "node": "^20.19.0 || >=22.12.0"
+      }
+    },
+    "node_modules/@rolldown/pluginutils": {
+      "version": "1.0.1",
+      "resolved": "https://registry.npmjs.org/@rolldown/pluginutils/-/pluginutils-1.0.1.tgz",
+      "integrity": "sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw==",
+      "dev": true,
+      "license": "MIT"
+    },
+    "node_modules/@tybys/wasm-util": {
+      "version": "0.10.3",
+      "resolved": "https://registry.npmjs.org/@tybys/wasm-util/-/wasm-util-0.10.3.tgz",
+      "integrity": "sha512-F3fo1MYrRJYL3zER0OUOmkutjr1Vp23m7OsSgp7nq4SP6OqX6C/56XFIPAl5bt3zaBRjmW7SGz3u/6LwFpYcOg==",
+      "dev": true,
+      "license": "MIT",
+      "optional": true,
+      "dependencies": {
+        "tslib": "^2.4.0"
+      }
+    },
+    "node_modules/@vitejs/plugin-vue": {
+      "version": "6.0.8",
+      "resolved": "https://registry.npmjs.org/@vitejs/plugin-vue/-/plugin-vue-6.0.8.tgz",
+      "integrity": "sha512-0ZjgOg7oO6farnNGup7yvoM/YXZV84OZxHAwtflItNa/6zzQyVb5LNxyea3FEKEX2XlagIKzrlH7wwxkKgtiew==",
+      "dev": true,
+      "license": "MIT",
+      "dependencies": {
+        "@rolldown/pluginutils": "^1.0.1"
+      },
+      "engines": {
+        "node": "^20.19.0 || >=22.12.0"
+      },
+      "peerDependencies": {
+        "vite": "^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0",
+        "vue": "^3.2.25"
+      }
+    },
+    "node_modules/@vue/compiler-core": {
+      "version": "3.5.40",
+      "resolved": "https://registry.npmjs.org/@vue/compiler-core/-/compiler-core-3.5.40.tgz",
+      "integrity": "sha512-39E8IgOhTbVDnoJFMKc2DvYnypcZwUqgUhQkccva/0m6FUwtIKSGV7n1hpVmYcFaoRAwf9pBcwnKlCEsN63ZEQ==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/parser": "^7.29.7",
+        "@vue/shared": "3.5.40",
+        "entities": "^7.0.1",
+        "estree-walker": "^2.0.2",
+        "source-map-js": "^1.2.1"
+      }
+    },
+    "node_modules/@vue/compiler-dom": {
+      "version": "3.5.40",
+      "resolved": "https://registry.npmjs.org/@vue/compiler-dom/-/compiler-dom-3.5.40.tgz",
+      "integrity": "sha512-pwkx4vqlqOspFstrcmzwkKLePVMD3PT65imRzLhanU2V1Fj4K13g6OXjanOyzw3aTAuRk84BOmY8f3rEHqPaVA==",
+      "license": "MIT",
+      "dependencies": {
+        "@vue/compiler-core": "3.5.40",
+        "@vue/shared": "3.5.40"
+      }
+    },
+    "node_modules/@vue/compiler-sfc": {
+      "version": "3.5.40",
+      "resolved": "https://registry.npmjs.org/@vue/compiler-sfc/-/compiler-sfc-3.5.40.tgz",
+      "integrity": "sha512-gIf497P4kpuALcvs5n3AEg1Vdn0pSY4XbjASIfHNYF1/MP3T2Mf2STERTubysBxCRxzJGJYtF/O7vwJrxFB3Vw==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/parser": "^7.29.7",
+        "@vue/compiler-core": "3.5.40",
+        "@vue/compiler-dom": "3.5.40",
+        "@vue/compiler-ssr": "3.5.40",
+        "@vue/shared": "3.5.40",
+        "estree-walker": "^2.0.2",
+        "magic-string": "^0.30.21",
+        "postcss": "^8.5.19",
+        "source-map-js": "^1.2.1"
+      }
+    },
+    "node_modules/@vue/compiler-ssr": {
+      "version": "3.5.40",
+      "resolved": "https://registry.npmjs.org/@vue/compiler-ssr/-/compiler-ssr-3.5.40.tgz",
+      "integrity": "sha512-rrE5xiXG663+vHCHa3J9p2z5OcBRjXmoqenprJxAFQxg5pSshzeBiCE6pu46axapRJ2Adk0YDA2BRZVjiHXnhg==",
+      "license": "MIT",
+      "dependencies": {
+        "@vue/compiler-dom": "3.5.40",
+        "@vue/shared": "3.5.40"
+      }
+    },
+    "node_modules/@vue/devtools-api": {
+      "version": "6.6.4",
+      "resolved": "https://registry.npmjs.org/@vue/devtools-api/-/devtools-api-6.6.4.tgz",
+      "integrity": "sha512-sGhTPMuXqZ1rVOk32RylztWkfXTRhuS7vgAKv0zjqk8gbsHkJ7xfFf+jbySxt7tWObEJwyKaHMikV/WGDiQm8g==",
+      "license": "MIT"
+    },
+    "node_modules/@vue/reactivity": {
+      "version": "3.5.40",
+      "resolved": "https://registry.npmjs.org/@vue/reactivity/-/reactivity-3.5.40.tgz",
+      "integrity": "sha512-B7ot9UlUZOi1zbq61/LvE88ZLTV8IlajTdiZTAEiDQgrnIMIZoPr9kGw0Zw46ObW62O9+H/Be3kMbfb7kYPQZA==",
+      "license": "MIT",
+      "dependencies": {
+        "@vue/shared": "3.5.40"
+      }
+    },
+    "node_modules/@vue/runtime-core": {
+      "version": "3.5.40",
+      "resolved": "https://registry.npmjs.org/@vue/runtime-core/-/runtime-core-3.5.40.tgz",
+      "integrity": "sha512-KAZLweuZ6uUJPK1PMSQPgBU5gCjgrrfjUhSglmU9NhH+Zjepa8cnwSydPWDWHDwOgY4g3VcZ+PljbiHlURNCbw==",
+      "license": "MIT",
+      "dependencies": {
+        "@vue/reactivity": "3.5.40",
+        "@vue/shared": "3.5.40"
+      }
+    },
+    "node_modules/@vue/runtime-dom": {
+      "version": "3.5.40",
+      "resolved": "https://registry.npmjs.org/@vue/runtime-dom/-/runtime-dom-3.5.40.tgz",
+      "integrity": "sha512-ZfrX8ssZQds900L9pr8AuK05ddnMsR4MPMZr8cPN9GoqoPWcXLhjvvbIA2SMv+7a97sJ1vv9pj/zxK0Cq/eEFQ==",
+      "license": "MIT",
+      "dependencies": {
+        "@vue/reactivity": "3.5.40",
+        "@vue/runtime-core": "3.5.40",
+        "@vue/shared": "3.5.40",
+        "csstype": "^3.2.3"
+      }
+    },
+    "node_modules/@vue/server-renderer": {
+      "version": "3.5.40",
+      "resolved": "https://registry.npmjs.org/@vue/server-renderer/-/server-renderer-3.5.40.tgz",
+      "integrity": "sha512-XNJym9WpevhTVt1HuwOrCRJ5Q+9z4BjTMrDtjTrvx74SmUll8spNTw6whWJa9mEkO4PKn5TihI/bm/8ds2QVJw==",
+      "license": "MIT",
+      "dependencies": {
+        "@vue/compiler-ssr": "3.5.40",
+        "@vue/runtime-dom": "3.5.40",
+        "@vue/shared": "3.5.40"
+      }
+    },
+    "node_modules/@vue/shared": {
+      "version": "3.5.40",
+      "resolved": "https://registry.npmjs.org/@vue/shared/-/shared-3.5.40.tgz",
+      "integrity": "sha512-WxnBtruIqOoV3rA4jeKDWzrYI5h7Cp4+pjwDi8kWGHz+IslhiN+wguLVVhtv2l8VoU02rzDCVfDjgCl1lNpZVg==",
+      "license": "MIT"
+    },
+    "node_modules/csstype": {
+      "version": "3.2.3",
+      "resolved": "https://registry.npmjs.org/csstype/-/csstype-3.2.3.tgz",
+      "integrity": "sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==",
+      "license": "MIT"
+    },
+    "node_modules/detect-libc": {
+      "version": "2.1.2",
+      "resolved": "https://registry.npmjs.org/detect-libc/-/detect-libc-2.1.2.tgz",
+      "integrity": "sha512-Btj2BOOO83o3WyH59e8MgXsxEQVcarkUOpEYrubB0urwnN10yQ364rsiByU11nZlqWYZm05i/of7io4mzihBtQ==",
+      "dev": true,
+      "license": "Apache-2.0",
+      "engines": {
+        "node": ">=8"
+      }
+    },
+    "node_modules/entities": {
+      "version": "7.0.1",
+      "resolved": "https://registry.npmjs.org/entities/-/entities-7.0.1.tgz",
+      "integrity": "sha512-TWrgLOFUQTH994YUyl1yT4uyavY5nNB5muff+RtWaqNVCAK408b5ZnnbNAUEWLTCpum9w6arT70i1XdQ4UeOPA==",
+      "license": "BSD-2-Clause",
+      "engines": {
+        "node": ">=0.12"
+      },
+      "funding": {
+        "url": "https://github.com/fb55/entities?sponsor=1"
+      }
+    },
+    "node_modules/estree-walker": {
+      "version": "2.0.2",
+      "resolved": "https://registry.npmjs.org/estree-walker/-/estree-walker-2.0.2.tgz",
+      "integrity": "sha512-Rfkk/Mp/DL7JVje3u18FxFujQlTNR2q6QfMSMB7AvCBx91NGj/ba3kCfza0f6dVDbw7YlRf/nDrn7pQrCCyQ/w==",
+      "license": "MIT"
+    },
+    "node_modules/fdir": {
+      "version": "6.5.0",
+      "resolved": "https://registry.npmjs.org/fdir/-/fdir-6.5.0.tgz",
+      "integrity": "sha512-tIbYtZbucOs0BRGqPJkshJUYdL+SDH7dVM8gjy+ERp3WAUjLEFJE+02kanyHtwjWOnwrKYBiwAmM0p4kLJAnXg==",
+      "dev": true,
+      "license": "MIT",
+      "engines": {
+        "node": ">=12.0.0"
+      },
+      "peerDependencies": {
+        "picomatch": "^3 || ^4"
+      },
+      "peerDependenciesMeta": {
+        "picomatch": {
+          "optional": true
+        }
+      }
+    },
+    "node_modules/fsevents": {
+      "version": "2.3.3",
+      "resolved": "https://registry.npmjs.org/fsevents/-/fsevents-2.3.3.tgz",
+      "integrity": "sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==",
+      "dev": true,
+      "hasInstallScript": true,
+      "license": "MIT",
+      "optional": true,
+      "os": [
+        "darwin"
+      ],
+      "engines": {
+        "node": "^8.16.0 || ^10.6.0 || >=11.0.0"
+      }
+    },
+    "node_modules/jalaali-js": {
+      "version": "2.0.0",
+      "resolved": "https://registry.npmjs.org/jalaali-js/-/jalaali-js-2.0.0.tgz",
+      "integrity": "sha512-HkWlwO3KxuYwERP1jsn+5M+QA+EKpIJ+zGesLee5VJNn2d2Melue0uQIvd9C/0QYFR7XVWvfF/uiNEz9Jbr9Hw==",
+      "license": "MIT",
+      "engines": {
+        "node": ">=20"
+      }
+    },
+    "node_modules/lightningcss": {
+      "version": "1.33.0",
+      "resolved": "https://registry.npmjs.org/lightningcss/-/lightningcss-1.33.0.tgz",
+      "integrity": "sha512-WkUDrojuJs0xkgGf2udWxa3yGBRxPtxUkB79i6aCZLRgc7PM8fZe9TosfPDcvEpQZbuFASnHYmRLBLUbmLOIIA==",
+      "dev": true,
+      "license": "MPL-2.0",
+      "dependencies": {
+        "detect-libc": "^2.0.3"
+      },
+      "engines": {
+        "node": ">= 12.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/parcel"
+      },
+      "optionalDependencies": {
+        "lightningcss-android-arm64": "1.33.0",
+        "lightningcss-darwin-arm64": "1.33.0",
+        "lightningcss-darwin-x64": "1.33.0",
+        "lightningcss-freebsd-x64": "1.33.0",
+        "lightningcss-linux-arm-gnueabihf": "1.33.0",
+        "lightningcss-linux-arm64-gnu": "1.33.0",
+        "lightningcss-linux-arm64-musl": "1.33.0",
+        "lightningcss-linux-x64-gnu": "1.33.0",
+        "lightningcss-linux-x64-musl": "1.33.0",
+        "lightningcss-win32-arm64-msvc": "1.33.0",
+        "lightningcss-win32-x64-msvc": "1.33.0"
+      }
+    },
+    "node_modules/lightningcss-android-arm64": {
+      "version": "1.33.0",
+      "resolved": "https://registry.npmjs.org/lightningcss-android-arm64/-/lightningcss-android-arm64-1.33.0.tgz",
+      "integrity": "sha512-gEpRTalKdosp4Bb8qWtc2iOgE5SeIHlpS1up9bFq2wAyYhl1UdTObYiHe98zEM9SQvSoqQZ1IQD0JNpg3Ml5pg==",
+      "cpu": [
+        "arm64"
+      ],
+      "dev": true,
+      "license": "MPL-2.0",
+      "optional": true,
+      "os": [
+        "android"
+      ],
+      "engines": {
+        "node": ">= 12.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/parcel"
+      }
+    },
+    "node_modules/lightningcss-darwin-arm64": {
+      "version": "1.33.0",
+      "resolved": "https://registry.npmjs.org/lightningcss-darwin-arm64/-/lightningcss-darwin-arm64-1.33.0.tgz",
+      "integrity": "sha512-Sciaz8eenNTKn9b3t7+xr0ipTp9YxKQY4npwQ3mrRuL0BAVHBLyZxofhaKBAVtzmtRZ/zTyo0/to4B1uWG/Djg==",
+      "cpu": [
+        "arm64"
+      ],
+      "dev": true,
+      "license": "MPL-2.0",
+      "optional": true,
+      "os": [
+        "darwin"
+      ],
+      "engines": {
+        "node": ">= 12.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/parcel"
+      }
+    },
+    "node_modules/lightningcss-darwin-x64": {
+      "version": "1.33.0",
+      "resolved": "https://registry.npmjs.org/lightningcss-darwin-x64/-/lightningcss-darwin-x64-1.33.0.tgz",
+      "integrity": "sha512-Z5UPAxzrjlWNNyGy6i65cJzzvgJ5D3T6wMvs+gWpY9d7qRhANrxqAp6LhxIgZhWEw18RfJTGcRxjuLIBr+m8XQ==",
+      "cpu": [
+        "x64"
+      ],
+      "dev": true,
+      "license": "MPL-2.0",
+      "optional": true,
+      "os": [
+        "darwin"
+      ],
+      "engines": {
+        "node": ">= 12.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/parcel"
+      }
+    },
+    "node_modules/lightningcss-freebsd-x64": {
+      "version": "1.33.0",
+      "resolved": "https://registry.npmjs.org/lightningcss-freebsd-x64/-/lightningcss-freebsd-x64-1.33.0.tgz",
+      "integrity": "sha512-QQM/Ti/hQajJwCY+RiWuCZ9sdtI/XQk7nDK5vC8kkdwixezOlDgvDx7+RT+QjK6FcFT4MpsuoBnHIo/O3StRRg==",
+      "cpu": [
+        "x64"
+      ],
+      "dev": true,
+      "license": "MPL-2.0",
+      "optional": true,
+      "os": [
+        "freebsd"
+      ],
+      "engines": {
+        "node": ">= 12.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/parcel"
+      }
+    },
+    "node_modules/lightningcss-linux-arm-gnueabihf": {
+      "version": "1.33.0",
+      "resolved": "https://registry.npmjs.org/lightningcss-linux-arm-gnueabihf/-/lightningcss-linux-arm-gnueabihf-1.33.0.tgz",
+      "integrity": "sha512-N7FVBe6iS24MlM6R/4RBTxGhQheZGs7tiQ9U32UtF75NzP5Q7xWPRqLBCKxlRQRk3rY1jCIPLzx7WzOhuUIRLQ==",
+      "cpu": [
+        "arm"
+      ],
+      "dev": true,
+      "license": "MPL-2.0",
+      "optional": true,
+      "os": [
+        "linux"
+      ],
+      "engines": {
+        "node": ">= 12.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/parcel"
+      }
+    },
+    "node_modules/lightningcss-linux-arm64-gnu": {
+      "version": "1.33.0",
+      "resolved": "https://registry.npmjs.org/lightningcss-linux-arm64-gnu/-/lightningcss-linux-arm64-gnu-1.33.0.tgz",
+      "integrity": "sha512-j2v/itmy4HlNxlc6voKXYgBqNi0Ng2LShg4z7GufpEgs05P+2suBVyi9I6YHq5uoVFx9ETin3eCEhLVyXGQnKg==",
+      "cpu": [
+        "arm64"
+      ],
+      "dev": true,
+      "license": "MPL-2.0",
+      "optional": true,
+      "os": [
+        "linux"
+      ],
+      "engines": {
+        "node": ">= 12.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/parcel"
+      }
+    },
+    "node_modules/lightningcss-linux-arm64-musl": {
+      "version": "1.33.0",
+      "resolved": "https://registry.npmjs.org/lightningcss-linux-arm64-musl/-/lightningcss-linux-arm64-musl-1.33.0.tgz",
+      "integrity": "sha512-yiO5ROMuYQgXbC60yjZU5CYSFZGKXL0HFATXt9mHJn1+zW55oCtMI9NfcVhYLMFDL7gV7oBPon/EmMMGg2OvtQ==",
+      "cpu": [
+        "arm64"
+      ],
+      "dev": true,
+      "license": "MPL-2.0",
+      "optional": true,
+      "os": [
+        "linux"
+      ],
+      "engines": {
+        "node": ">= 12.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/parcel"
+      }
+    },
+    "node_modules/lightningcss-linux-x64-gnu": {
+      "version": "1.33.0",
+      "resolved": "https://registry.npmjs.org/lightningcss-linux-x64-gnu/-/lightningcss-linux-x64-gnu-1.33.0.tgz",
+      "integrity": "sha512-ar+Ju7LmcN0Jo4FpL4hpFybwNG9/3A/Br5KW2n2jyODg3MEZXaDYADdemoNS+BDNfMgKvylJLj4S5tyRActuAg==",
+      "cpu": [
+        "x64"
+      ],
+      "dev": true,
+      "license": "MPL-2.0",
+      "optional": true,
+      "os": [
+        "linux"
+      ],
+      "engines": {
+        "node": ">= 12.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/parcel"
+      }
+    },
+    "node_modules/lightningcss-linux-x64-musl": {
+      "version": "1.33.0",
+      "resolved": "https://registry.npmjs.org/lightningcss-linux-x64-musl/-/lightningcss-linux-x64-musl-1.33.0.tgz",
+      "integrity": "sha512-RYiYbkokw0trfKqqzfF55lginwEPrD3OJDfTuJzFs1MK6iFnDenaz1fqLLtX4ITG3OktJQXOeTaw1awrBAlZPw==",
+      "cpu": [
+        "x64"
+      ],
+      "dev": true,
+      "license": "MPL-2.0",
+      "optional": true,
+      "os": [
+        "linux"
+      ],
+      "engines": {
+        "node": ">= 12.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/parcel"
+      }
+    },
+    "node_modules/lightningcss-win32-arm64-msvc": {
+      "version": "1.33.0",
+      "resolved": "https://registry.npmjs.org/lightningcss-win32-arm64-msvc/-/lightningcss-win32-arm64-msvc-1.33.0.tgz",
+      "integrity": "sha512-1K+MPfLSFVpphzpdbfkhlWk6wBrTObBzS2T6db10PNOZgR9GoVsAWzwNyuhUYYbTp23j+4RrncfujZ4uAzXvwA==",
+      "cpu": [
+        "arm64"
+      ],
+      "dev": true,
+      "license": "MPL-2.0",
+      "optional": true,
+      "os": [
+        "win32"
+      ],
+      "engines": {
+        "node": ">= 12.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/parcel"
+      }
+    },
+    "node_modules/lightningcss-win32-x64-msvc": {
+      "version": "1.33.0",
+      "resolved": "https://registry.npmjs.org/lightningcss-win32-x64-msvc/-/lightningcss-win32-x64-msvc-1.33.0.tgz",
+      "integrity": "sha512-OlEICDx/Xl0FqSp4bry8zFnCvGpig3Gl4gCquvYwHuqJKEC1+n9NgDniFvqHGmMv1ZkqDJrDqKKSykTDX+ehuA==",
+      "cpu": [
+        "x64"
+      ],
+      "dev": true,
+      "license": "MPL-2.0",
+      "optional": true,
+      "os": [
+        "win32"
+      ],
+      "engines": {
+        "node": ">= 12.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/parcel"
+      }
+    },
+    "node_modules/magic-string": {
+      "version": "0.30.21",
+      "resolved": "https://registry.npmjs.org/magic-string/-/magic-string-0.30.21.tgz",
+      "integrity": "sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==",
+      "license": "MIT",
+      "dependencies": {
+        "@jridgewell/sourcemap-codec": "^1.5.5"
+      }
+    },
+    "node_modules/nanoid": {
+      "version": "3.3.16",
+      "resolved": "https://registry.npmjs.org/nanoid/-/nanoid-3.3.16.tgz",
+      "integrity": "sha512-bzlKTyNJ7+LdGIIwy8ijFpIqEQIvafahV7eYykJ8Cvh42EdJeODoJ6gUJXpQJvej1BddH8OqTXZNE/KfbWAu8Q==",
+      "funding": [
+        {
+          "type": "github",
+          "url": "https://github.com/sponsors/ai"
+        }
+      ],
+      "license": "MIT",
+      "bin": {
+        "nanoid": "bin/nanoid.cjs"
+      },
+      "engines": {
+        "node": "^10 || ^12 || ^13.7 || ^14 || >=15.0.1"
+      }
+    },
+    "node_modules/picocolors": {
+      "version": "1.1.1",
+      "resolved": "https://registry.npmjs.org/picocolors/-/picocolors-1.1.1.tgz",
+      "integrity": "sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==",
+      "license": "ISC"
+    },
+    "node_modules/picomatch": {
+      "version": "4.0.5",
+      "resolved": "https://registry.npmjs.org/picomatch/-/picomatch-4.0.5.tgz",
+      "integrity": "sha512-RvwwcruNjI1ncT5xRakeyS9Lf8lcItv34KD+aif+VH9kduAyfYBipGh12274xtenIPZ119/R9BdTBa8gAwSh0A==",
+      "dev": true,
+      "license": "MIT",
+      "engines": {
+        "node": ">=12"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/jonschlinkert"
+      }
+    },
+    "node_modules/postcss": {
+      "version": "8.5.25",
+      "resolved": "https://registry.npmjs.org/postcss/-/postcss-8.5.25.tgz",
+      "integrity": "sha512-DTPx3RWSSnWyzLxQnlH0rJP+EW5ekl16ZU4/psbIhA0e53kJfdgaN5vKM+xP7yJtXVu+nfdVFmlgFDEKAe4Pyw==",
+      "funding": [
+        {
+          "type": "opencollective",
+          "url": "https://opencollective.com/postcss/"
+        },
+        {
+          "type": "tidelift",
+          "url": "https://tidelift.com/funding/github/npm/postcss"
+        },
+        {
+          "type": "github",
+          "url": "https://github.com/sponsors/ai"
+        }
+      ],
+      "license": "MIT",
+      "dependencies": {
+        "nanoid": "^3.3.16",
+        "picocolors": "^1.1.1",
+        "source-map-js": "^1.2.1"
+      },
+      "engines": {
+        "node": "^10 || ^12 || >=14"
+      }
+    },
+    "node_modules/rolldown": {
+      "version": "1.2.1",
+      "resolved": "https://registry.npmjs.org/rolldown/-/rolldown-1.2.1.tgz",
+      "integrity": "sha512-4FKJhg8d3OiyQOA6Q1Q0hoFFpW9/OoX+VsHzpECsdsIZoOArrAK90gl59YK/Z+gnDel45bgJZK03ozH/9bCqEw==",
+      "dev": true,
+      "license": "MIT",
+      "dependencies": {
+        "@oxc-project/types": "=0.142.0",
+        "@rolldown/pluginutils": "^1.0.0"
+      },
+      "bin": {
+        "rolldown": "bin/cli.mjs"
+      },
+      "engines": {
+        "node": "^20.19.0 || >=22.12.0"
+      },
+      "optionalDependencies": {
+        "@rolldown/binding-android-arm64": "1.2.1",
+        "@rolldown/binding-darwin-arm64": "1.2.1",
+        "@rolldown/binding-darwin-x64": "1.2.1",
+        "@rolldown/binding-freebsd-x64": "1.2.1",
+        "@rolldown/binding-linux-arm-gnueabihf": "1.2.1",
+        "@rolldown/binding-linux-arm64-gnu": "1.2.1",
+        "@rolldown/binding-linux-arm64-musl": "1.2.1",
+        "@rolldown/binding-linux-ppc64-gnu": "1.2.1",
+        "@rolldown/binding-linux-s390x-gnu": "1.2.1",
+        "@rolldown/binding-linux-x64-gnu": "1.2.1",
+        "@rolldown/binding-linux-x64-musl": "1.2.1",
+        "@rolldown/binding-openharmony-arm64": "1.2.1",
+        "@rolldown/binding-wasm32-wasi": "1.2.1",
+        "@rolldown/binding-win32-arm64-msvc": "1.2.1",
+        "@rolldown/binding-win32-x64-msvc": "1.2.1"
+      }
+    },
+    "node_modules/source-map-js": {
+      "version": "1.2.1",
+      "resolved": "https://registry.npmjs.org/source-map-js/-/source-map-js-1.2.1.tgz",
+      "integrity": "sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==",
+      "license": "BSD-3-Clause",
+      "engines": {
+        "node": ">=0.10.0"
+      }
+    },
+    "node_modules/tinyglobby": {
+      "version": "0.2.17",
+      "resolved": "https://registry.npmjs.org/tinyglobby/-/tinyglobby-0.2.17.tgz",
+      "integrity": "sha512-wXR/dYpcqKmfWpEdZjiKJOwCNFndD0DMnrW/cYjVGttEkBfVgcLFHoNrlj47mjOVic9yyNu65alsgF4NQyTa2g==",
+      "dev": true,
+      "license": "MIT",
+      "dependencies": {
+        "fdir": "^6.5.0",
+        "picomatch": "^4.0.4"
+      },
+      "engines": {
+        "node": ">=12.0.0"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/SuperchupuDev"
+      }
+    },
+    "node_modules/tslib": {
+      "version": "2.8.1",
+      "resolved": "https://registry.npmjs.org/tslib/-/tslib-2.8.1.tgz",
+      "integrity": "sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==",
+      "dev": true,
+      "license": "0BSD",
+      "optional": true
+    },
+    "node_modules/vite": {
+      "version": "8.2.0",
+      "resolved": "https://registry.npmjs.org/vite/-/vite-8.2.0.tgz",
+      "integrity": "sha512-pn+CFpM0lwDeKwmOq1ZaBK/9sjorZcgqxki6MbY/jPEVd9vichIlmlD4HmQ5wdP5EgqQCFRaACBxMC7uEGc6lQ==",
+      "dev": true,
+      "license": "MIT",
+      "dependencies": {
+        "lightningcss": "^1.33.0",
+        "picomatch": "^4.0.5",
+        "postcss": "^8.5.23",
+        "rolldown": "~1.2.0",
+        "tinyglobby": "^0.2.17"
+      },
+      "bin": {
+        "vite": "bin/vite.js"
+      },
+      "engines": {
+        "node": "^20.19.0 || >=22.12.0"
+      },
+      "funding": {
+        "url": "https://github.com/vitejs/vite?sponsor=1"
+      },
+      "optionalDependencies": {
+        "fsevents": "~2.3.3"
+      },
+      "peerDependencies": {
+        "@types/node": "^20.19.0 || >=22.12.0",
+        "@vitejs/devtools": "^0.4.0",
+        "esbuild": "^0.27.0 || ^0.28.0",
+        "jiti": ">=1.21.0",
+        "less": "^4.0.0",
+        "sass": "^1.70.0",
+        "sass-embedded": "^1.70.0",
+        "stylus": ">=0.54.8",
+        "sugarss": "^5.0.0",
+        "terser": "^5.16.0",
+        "tsx": "^4.8.1",
+        "yaml": "^2.4.2"
+      },
+      "peerDependenciesMeta": {
+        "@types/node": {
+          "optional": true
+        },
+        "@vitejs/devtools": {
+          "optional": true
+        },
+        "esbuild": {
+          "optional": true
+        },
+        "jiti": {
+          "optional": true
+        },
+        "less": {
+          "optional": true
+        },
+        "sass": {
+          "optional": true
+        },
+        "sass-embedded": {
+          "optional": true
+        },
+        "stylus": {
+          "optional": true
+        },
+        "sugarss": {
+          "optional": true
+        },
+        "terser": {
+          "optional": true
+        },
+        "tsx": {
+          "optional": true
+        },
+        "yaml": {
+          "optional": true
+        }
+      }
+    },
+    "node_modules/vue": {
+      "version": "3.5.40",
+      "resolved": "https://registry.npmjs.org/vue/-/vue-3.5.40.tgz",
+      "integrity": "sha512-+8PJ4SJXdn/cHGImF4CKdxlWHIN5Dkt7DoufRREM6h6uVCx2m7QxgcEQmmzyOK8A9mcafg7sFbJFYsdFVubTig==",
+      "license": "MIT",
+      "dependencies": {
+        "@vue/compiler-dom": "3.5.40",
+        "@vue/compiler-sfc": "3.5.40",
+        "@vue/runtime-dom": "3.5.40",
+        "@vue/server-renderer": "3.5.40",
+        "@vue/shared": "3.5.40"
+      },
+      "peerDependencies": {
+        "typescript": "*"
+      },
+      "peerDependenciesMeta": {
+        "typescript": {
+          "optional": true
+        }
+      }
+    },
+    "node_modules/vue-router": {
+      "version": "4.6.4",
+      "resolved": "https://registry.npmjs.org/vue-router/-/vue-router-4.6.4.tgz",
+      "integrity": "sha512-Hz9q5sa33Yhduglwz6g9skT8OBPii+4bFn88w6J+J4MfEo4KRRpmiNG/hHHkdbRFlLBOqxN8y8gf2Fb0MTUgVg==",
+      "license": "MIT",
+      "dependencies": {
+        "@vue/devtools-api": "^6.6.4"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/posva"
+      },
+      "peerDependencies": {
+        "vue": "^3.5.0"
+      }
+    }
+  }
+}
+
+      ]]>
+    </file>
+    <file path="package.json" lines="24" size="463" encoding="utf-8">
+      <![CDATA[
+{
+  "name": "kidney-transplant-system",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "jalaali-js": "^2.0.0",
+    "vue": "^3.5.40",
+    "vue-router": "^4.6.4"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.8",
+    "vite": "^8.2.0"
+  }
+}
+
+      ]]>
+    </file>
+    <file path="src/App.vue" lines="23" size="675" encoding="utf-8">
+      <![CDATA[
+<template>
+  <div id="app">
+    <router-view v-slot="{ Component }">
+      <transition name="fade" mode="out-in">
+        <component :is="Component" />
+      </transition>
+    </router-view>
+    <ToastContainer />
+  </div>
+</template>
+
+<script setup>
+import ToastContainer from './components/ToastContainer.vue'
+</script>
+
+<style>
+/* Router transitions */
+.fade-enter-active, .fade-leave-active { transition: opacity .15s; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
+.slide-enter-active, .slide-leave-active { transition: all .25s; }
+.slide-enter-from { opacity: 0; transform: translateX(20px); }
+.slide-leave-to { opacity: 0; transform: translateX(-20px); }
+</style>
+
+      ]]>
+    </file>
+    <file path="src/components/ToastContainer.vue" lines="45" size="1144" encoding="utf-8">
+      <![CDATA[
+<template>
+  <div class="toast-container">
+    <transition-group name="slide">
+      <div v-for="t in toasts" :key="t.id" class="toast" :class="t.type">
+        <i :class="t.icon" :style="{ color: t.color }"></i>
+        <div style="flex:1;">
+          <div class="font-bold">{{ t.title }}</div>
+          <div class="text-sm text-secondary">{{ t.detail }}</div>
+        </div>
+      </div>
+    </transition-group>
+  </div>
+</template>
+
+<script setup>
+import { toasts } from '../composables/useToast'
+</script>
+
+<style scoped>
+.toast-container {
+  position: fixed;
+  top: 78px;
+  left: 24px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.toast {
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  box-shadow: var(--shadow-3);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 280px;
+  animation: slideInLeft .3s;
+  border-right: 4px solid;
+}
+.toast.success { border-color: var(--color-success); }
+.toast.error { border-color: var(--color-error); }
+.toast.warning { border-color: var(--color-warning); }
+.toast.info { border-color: var(--color-info); }
+</style>
+
+      ]]>
+    </file>
+    <file path="src/composables/useToast.js" lines="36" size="788" encoding="utf-8">
+      <![CDATA[
+import { ref } from 'vue'
+
+const toasts = ref([])
+
+export const useToast = () => {
+  const add = ({ severity, summary, detail, life = 3500 }) => {
+    const iconMap = {
+      success: 'ri-check-line',
+      error: 'ri-error-warning-line',
+      warning: 'ri-alert-line',
+      info: 'ri-information-line'
+    }
+    const colorMap = {
+      success: '#10b981',
+      error: '#ef4444',
+      warning: '#f59e0b',
+      info: '#3b82f6'
+    }
+    const id = Date.now() + Math.random()
+    toasts.value.push({
+      id,
+      title: summary,
+      detail,
+      type: severity,
+      icon: iconMap[severity],
+      color: colorMap[severity]
+    })
+    setTimeout(() => {
+      toasts.value = toasts.value.filter(t => t.id !== id)
+    }, life)
+  }
+
+  return { toasts, add }
+}
+
+export { toasts }
+
+      ]]>
+    </file>
+    <file path="src/directives/clickOutside.js" lines="15" size="329" encoding="utf-8">
+      <![CDATA[
+import { ref } from 'vue'
+
+export default {
+  mounted(el, binding) {
+    el._clickOutside = (event) => {
+      if (!el.contains(event.target)) {
+        binding.value()
+      }
+    }
+    document.addEventListener('click', el._clickOutside)
+  },
+  unmounted(el) {
+    document.removeEventListener('click', el._clickOutside)
+  }
+}
+
+      ]]>
+    </file>
+    <file path="src/layouts/MainLayout.vue" lines="159" size="6923" encoding="utf-8">
+      <![CDATA[
+<template>
+  <div class="app-shell">
+    <!-- Sidebar -->
+    <aside class="sidebar" :class="{collapsed: collapsed}">
+      <div class="sidebar-header">
+        <div class="brand">
+          <div class="brand-icon"><i class="ri-heart-pulse-line"></i></div>
+          <div class="brand-text">سامانه پیوند کلیه</div>
+        </div>
+        <button class="toggle-btn" @click="collapsed = !collapsed" title="جمع/باز کردن منو">
+          <i :class="collapsed ? 'ri-menu-unfold-line' : 'ri-menu-fold-line'"></i>
+        </button>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">منوی اصلی</div>
+          <button class="nav-item" :class="{active: $route.name === 'dashboard'}" @click="$router.push('/dashboard')">
+            <i class="ri-dashboard-2-line nav-icon"></i><span class="nav-label">داشبورد</span>
+          </button>
+          <button class="nav-item" :class="{active: $route.path.startsWith('/recipients')}" @click="$router.push('/recipients')">
+            <i class="ri-user-heart-line nav-icon"></i><span class="nav-label">گیرندگان</span>
+          </button>
+          <button class="nav-item" :class="{active: $route.path.startsWith('/donors')}" @click="$router.push('/donors')">
+            <i class="ri-hand-heart-line nav-icon"></i><span class="nav-label">اهداکنندگان</span>
+          </button>
+          <button class="nav-item" :class="{active: $route.path.startsWith('/matching')}" @click="$router.push('/matching')">
+            <i class="ri-exchange-2-line nav-icon"></i><span class="nav-label">سازگاری‌سنجی</span>
+          </button>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main" :class="{collapsed: collapsed}">
+      <header class="topbar">
+        <div class="topbar-user">
+          <div class="avatar sm">{{ userInitial }}</div>
+          <div class="topbar-user-text">
+            <span class="topbar-user-name">{{ user.fullName }}</span>
+            <span class="topbar-user-role">{{ user.role }}</span>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <div class="topbar-date">
+            <span class="topbar-date-j">{{ currentDates.jalali }}</span>
+            <span class="topbar-date-g" dir="ltr">{{ currentDates.gregorian }}</span>
+          </div>
+        </div>
+      </header>
+      <main class="content">
+        <router-view />
+      </main>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed } from 'vue'
+import { getCurrentDate } from '../utils/date'
+
+const collapsed = ref(false)
+const user = { fullName: 'دکتر محمد کاظمی', role: 'هماهنگ‌کننده پیوند' }
+const userInitial = computed(() => user.fullName[user.fullName.length - 1])
+const currentDates = ref(getCurrentDate())
+
+setInterval(() => {
+  currentDates.value = getCurrentDate()
+}, 60000)
+</script>
+
+<style scoped>
+.app-shell {
+  min-height: 100vh; display: flex;
+  background: radial-gradient(1100px 420px at 88% -8%, rgba(14,165,233,.06), transparent 60%), var(--surface-ground);
+}
+.sidebar {
+  width: 260px; background: var(--surface);
+  border-left: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  position: fixed; right: 0; top: 0; bottom: 0; z-index: 40;
+  transition: width .3s ease; overflow: hidden;
+}
+.sidebar.collapsed { width: 72px; }
+.sidebar.collapsed .nav-label,
+.sidebar.collapsed .brand-text,
+.sidebar.collapsed .nav-section-title { display: none; }
+.sidebar-header {
+  padding: 15px 16px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+}
+.brand { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+.brand-icon {
+  width: 38px; height: 38px; background: var(--grad-brand);
+  border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 22px; box-shadow: var(--shadow-brand); flex-shrink: 0;
+}
+.brand-text { font-weight: 800; font-size: 14.5px; white-space: nowrap; }
+.toggle-btn {
+  width: 32px; height: 32px; border-radius: var(--radius-sm);
+  background: var(--surface-muted); border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-2); transition: all .2s;
+}
+.toggle-btn:hover { background: var(--color-primary-soft); color: var(--color-primary-dark); }
+.sidebar-nav { flex: 1; overflow-y: auto; padding: 10px; }
+.nav-section { margin-bottom: 12px; }
+.nav-section-title {
+  padding: 0 12px 6px; font-size: 11px; font-weight: 700;
+  color: var(--text-3); letter-spacing: .5px;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px; border-radius: var(--radius-sm);
+  color: var(--text-2); cursor: pointer; font-family: inherit;
+  background: transparent; border: none; width: 100%; text-align: right;
+  transition: all .2s; font-weight: 500; margin-bottom: 2px;
+}
+.nav-item:hover { background: var(--surface-muted); color: var(--color-primary); }
+.nav-item.active {
+  background: linear-gradient(135deg, var(--color-primary-soft) 0%, #cffafe 100%);
+  color: var(--color-primary-dark); font-weight: 700; position: relative;
+}
+.nav-item.active::before {
+  content: ''; position: absolute; right: 0; top: 20%; bottom: 20%;
+  width: 3px; background: var(--color-primary); border-radius: 2px;
+}
+.nav-icon { font-size: 20px; flex-shrink: 0; }
+.nav-label { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.main {
+  flex: 1; margin-right: 260px;
+  display: flex; flex-direction: column; min-height: 100vh;
+  transition: margin-right .3s ease;
+}
+.main.collapsed { margin-right: 72px; }
+.topbar {
+  height: 62px; background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px; position: sticky; top: 0; z-index: 30; gap: 16px;
+}
+.topbar-user { display: flex; align-items: center; gap: 10px; }
+.topbar-user-text { display: flex; flex-direction: column; line-height: 1.35; }
+.topbar-user-name { font-size: 13px; font-weight: 700; }
+.topbar-user-role { font-size: 11.5px; color: var(--text-3); }
+.topbar-actions { display: flex; align-items: center; gap: 10px; }
+.topbar-date { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.4; padding: 0 2px; }
+.topbar-date-j { font-size: 12.5px; font-weight: 700; color: var(--text-1); }
+.topbar-date-g { font-size: 11px; font-weight: 500; color: var(--text-3); }
+.content { padding: 24px; flex: 1; }
+.avatar {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--grad-brand); color: #fff;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 14px; flex-shrink: 0;
+}
+.avatar.sm { width: 32px; height: 32px; font-size: 12px; }
+</style>
+
+      ]]>
+    </file>
+    <file path="src/main.js" lines="16" size="314" encoding="utf-8">
+      <![CDATA[
+import { createApp } from 'vue'
+import App from './App.vue'
+import router from './router'
+import clickOutside from './directives/clickOutside'
+
+// Styles
+import './styles/main.css'
+
+const app = createApp(App)
+
+app.use(router)
+
+// Register directives
+app.directive('click-outside', clickOutside)
+
+app.mount('#app')
+
+      ]]>
+    </file>
+    <file path="src/router/index.js" lines="45" size="1776" encoding="utf-8">
+      <![CDATA[
+import { createRouter, createWebHashHistory } from 'vue-router'
+
+// Layouts
+import MainLayout from '../layouts/MainLayout.vue'
+
+// Views
+import LoginView from '../views/LoginView.vue'
+import DashboardView from '../views/DashboardView.vue'
+import RecipientListView from '../views/RecipientListView.vue'
+import RecipientCreateView from '../views/RecipientCreateView.vue'
+import RecipientDetailView from '../views/RecipientDetailView.vue'
+import DonorListView from '../views/DonorListView.vue'
+import DonorCreateView from '../views/DonorCreateView.vue'
+import DonorDetailView from '../views/DonorDetailView.vue'
+import MatchingDashboardView from '../views/MatchingDashboardView.vue'
+import VirtualCrossmatchView from '../views/VirtualCrossmatchView.vue'
+import WaitingListRecipientsView from '../views/WaitingListRecipientsView.vue'
+
+const routes = [
+  { path: '/', redirect: '/login' },
+  { path: '/login', name: 'login', component: LoginView },
+  {
+    path: '/',
+    component: MainLayout,
+    children: [
+      { path: 'dashboard', name: 'dashboard', component: DashboardView },
+      { path: 'recipients', component: RecipientListView },
+      { path: 'recipients/new', component: RecipientCreateView },
+      { path: 'recipients/:id', component: RecipientDetailView },
+      { path: 'donors', component: DonorListView },
+      { path: 'donors/new', component: DonorCreateView },
+      { path: 'donors/:id', component: DonorDetailView },
+      { path: 'matching', component: MatchingDashboardView },
+      { path: 'matching/virtual-crossmatch', component: VirtualCrossmatchView },
+      { path: 'waiting-list/recipients', component: WaitingListRecipientsView }
+    ]
+  }
+]
+
+const router = createRouter({
+  history: createWebHashHistory(),
+  routes
+})
+
+export default router
+
+      ]]>
+    </file>
+    <file path="src/styles/main.css" lines="87" size="3285" encoding="utf-8">
+      <![CDATA[
+/* =====================================================================
+   ۱) توکن‌های طراحی (Design Tokens)
+   ---------------------------------------------------------------------
+   برای تغییر تم کلی برنامه (رنگ‌ها، گوشه‌ها، سایه‌ها و گرادیان‌ها)
+   فقط مقادیر این بخش را ویرایش کنید؛ هیچ استایل دیگری را تغییر ندهید.
+   ===================================================================== */
+:root {
+  /* --- پالت برند --- */
+  --brand-400: #38bdf8;
+  --brand-500: #0ea5e9;
+  --brand-600: #0284c7;
+  --brand-700: #0369a1;
+  --accent-500: #06b6d4;
+  --secondary-600: #2563eb;
+
+  /* --- رنگ‌های وضعیت --- */
+  --success-500: #10b981;
+  --success-700: #047857;
+  --warning-500: #f59e0b;
+  --warning-700: #92400e;
+  --error-500: #ef4444;
+  --error-700: #991b1b;
+  --info-500: #3b82f6;
+  --info-700: #1e40af;
+
+  /* --- سطح‌ها و متن --- */
+  --surface: #ffffff;
+  --surface-ground: #f8fafc;
+  --surface-muted: #f1f5f9;
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --text-1: #0f172a;
+  --text-2: #475569;
+  --text-3: #94a3b8;
+
+  /* --- توکن‌های معنایی --- */
+  --color-primary: var(--brand-500);
+  --color-primary-dark: var(--brand-600);
+  --color-primary-light: var(--brand-400);
+  --color-primary-soft: #e0f2fe;
+  --color-secondary: var(--secondary-600);
+  --color-accent: var(--accent-500);
+  --color-success: var(--success-500);
+  --color-warning: var(--warning-500);
+  --color-error: var(--error-500);
+  --color-info: var(--info-500);
+
+  /* --- گرادیان‌ها --- */
+  --grad-brand: linear-gradient(135deg, var(--brand-500), var(--secondary-600));
+  --grad-donor: linear-gradient(135deg, var(--success-500), var(--accent-500));
+  --grad-auth: linear-gradient(135deg, #0c4a6e 0%, #0369a1 50%, #06b6d4 100%);
+
+  /* --- گوشه‌ها --- */
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-full: 999px;
+
+  /* --- سایه‌ها --- */
+  --shadow-1: 0 1px 2px rgba(15,23,42,.06);
+  --shadow-2: 0 8px 20px -6px rgba(15,23,42,.12);
+  --shadow-3: 0 20px 45px -12px rgba(15,23,42,.25);
+  --shadow-brand: 0 10px 22px -6px rgba(14,165,233,.45);
+
+  /* --- فونت --- */
+  --font-sans: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* ===================== ۲) استایل‌های پایه ===================== */
+* { box-sizing: border-box; }
+html, body {
+  font-family: var(--font-sans);
+  margin: 0; padding: 0;
+  background: var(--surface-ground);
+  color: var(--text-1);
+  font-size: 14px;
+  line-height: 1.7;
+}
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideInLeft { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+
+      ]]>
+    </file>
+    <file path="src/utils/date.js" lines="149" size="4796" encoding="utf-8">
+      <![CDATA[
+import * as jalaali from 'jalaali-js'
+
+/**
+ * Convert Gregorian date to Jalali
+ */
+export const gregorianToJalali = (gy, gm, gd) => {
+  if (jalaali?.toJalaali) {
+    const r = jalaali.toJalaali(gy, gm, gd)
+    return { jy: r.jy, jm: r.jm, jd: r.jd }
+  }
+  // Fallback implementation
+  const g_d_m = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334]
+  let gy2 = gm > 2 ? gy + 1 : gy
+  let days = 355666 + 365 * gy + Math.floor((gy2 + 3) / 4) - Math.floor((gy2 + 99) / 100) + Math.floor((gy2 + 399) / 400) + gd + g_d_m[gm - 1]
+  let jy = -1595 + 33 * Math.floor(days / 12053)
+  days %= 12053
+  jy += 4 * Math.floor(days / 1461)
+  days %= 1461
+  if (days > 365) {
+    jy += Math.floor((days - 1) / 365)
+    days = (days - 1) % 365
+  }
+  const jm = days < 186 ? 1 + Math.floor(days / 31) : 7 + Math.floor((days - 186) / 30)
+  const jd = 1 + (days < 186 ? days % 31 : (days - 186) % 30)
+  return { jy, jm, jd }
+}
+
+/**
+ * Convert Jalali date to Gregorian
+ */
+export const jalaliToGregorian = (jy, jm, jd) => {
+  if (jalaali?.toGregorian) {
+    const r = jalaali.toGregorian(jy, jm, jd)
+    return { gy: r.gy, gm: r.gm, gd: r.gd }
+  }
+  // Fallback implementation
+  let jy2 = jy + 1595
+  let days = -355668 + 365 * jy2 + Math.floor(jy2 / 33) * 8 + Math.floor(((jy2 % 33) + 3) / 4) + jd + (jm < 7 ? (jm - 1) * 31 : (jm - 7) * 30 + 186)
+  let gy = 400 * Math.floor(days / 146097)
+  days %= 146097
+  if (days > 36524) {
+    gy += 100 * Math.floor(--days / 36524)
+    days %= 36524
+    if (days >= 365) days++
+  }
+  gy += 4 * Math.floor(days / 1461)
+  days %= 1461
+  if (days > 365) {
+    gy += Math.floor((days - 1) / 365)
+    days = (days - 1) % 365
+  }
+  let gd = days + 1
+  const g_d_m = [0, 31, ((gy % 4 === 0 && gy % 100 !== 0) || (gy % 400 === 0)) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+  let gm
+  for (gm = 0; gm < 13 && gd > g_d_m[gm]; gm++) gd -= g_d_m[gm]
+  return { gy, gm, gd }
+}
+
+/**
+ * Convert Jalali string (YYYY-MM-DD) to Gregorian string
+ */
+export const jalaliStrToGregorian = (str) => {
+  if (!str || !/^\d{4}-\d{2}-\d{2}$/.test(str)) return ''
+  const [jy, jm, jd] = str.split('-').map(Number)
+  const r = jalaliToGregorian(jy, jm, jd)
+  if (!r || !r.gy) return ''
+  const pad = n => String(n).padStart(2, '0')
+  return `${r.gy}-${pad(r.gm)}-${pad(r.gd)}`
+}
+
+/**
+ * Convert Gregorian string (YYYY-MM-DD) to Jalali string
+ */
+export const gregorianStrToJalali = (str) => {
+  if (!str || !/^\d{4}-\d{2}-\d{2}$/.test(str)) return ''
+  const [gy, gm, gd] = str.split('-').map(Number)
+  const r = gregorianToJalali(gy, gm, gd)
+  if (!r || !r.jy) return ''
+  const pad = n => String(n).padStart(2, '0')
+  return `${r.jy}-${pad(r.jm)}-${pad(r.jd)}`
+}
+
+/**
+ * Get length of a Jalali month
+ */
+export const jMonthLength = (jy, jm) => {
+  if (jalaali?.jalaaliMonthLength) return jalaali.jalaaliMonthLength(jy, jm)
+  if (jm <= 6) return 31
+  if (jm <= 11) return 30
+  const g = jalaliToGregorian(jy, 12, 30)
+  const back = gregorianToJalali(g.gy, g.gm, g.gd)
+  return back.jy === jy ? 30 : 29
+}
+
+/**
+ * Convert digits to Persian/Farsi
+ */
+export const toFaDigits = (v) => String(v).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d])
+
+/**
+ * Pad number with leading zero
+ */
+export const pad2 = n => String(n).padStart(2, '0')
+
+/**
+ * Jalali months names
+ */
+export const JALALI_MONTHS = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند']
+
+/**
+ * Gregorian months names in Persian
+ */
+export const GREGORIAN_MONTHS_FA = ['ژانویه', 'فوریه', 'مارس', 'آوریل', 'مه', 'ژوئن', 'ژوئیه', 'اوت', 'سپتامبر', 'اکتبر', 'نوامبر', 'دسامبر']
+
+/**
+ * Weekday names in Persian
+ */
+export const WEEKDAYS_FA = ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه']
+
+/**
+ * Weekday letters (for calendar headers)
+ */
+export const WEEKDAY_LETTERS = ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج']
+
+/**
+ * Get current date in both Gregorian and Jalali formats
+ */
+export const getCurrentDate = () => {
+  const now = new Date()
+  const j = gregorianToJalali(now.getFullYear(), now.getMonth() + 1, now.getDate())
+  return {
+    gregorian: `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`,
+    jalali: `${WEEKDAYS_FA[now.getDay()]} ${toFaDigits(j.jy)}/${toFaDigits(j.jm)}/${toFaDigits(j.jd)}`
+  }
+}
+
+/**
+ * Format date string to Persian Jalali format
+ */
+export const formatFaDate = (dateStr) => {
+  if (!dateStr) return '—'
+  try {
+    const [y, m, d] = String(dateStr).slice(0, 10).split('-').map(Number)
+    const j = gregorianToJalali(y, m, d)
+    return `${toFaDigits(j.jy)}/${toFaDigits(j.jm)}/${toFaDigits(j.jd)}`
+  } catch (e) {
+    return dateStr
+  }
+}
+
+      ]]>
+    </file>
+    <file path="src/utils/validation.js" lines="45" size="1330" encoding="utf-8">
+      <![CDATA[
+/**
+ * Validate Iranian National ID
+ */
+export const nationalIdChecker = (id) => {
+  try {
+    if (!/^\d{10}$/.test(id)) return false
+    let sum = 0
+    for (let i = 0; i < 9; i++) sum += parseInt(id[i]) * (10 - i)
+    const remainder = sum % 11
+    const lastDigit = parseInt(id[9])
+    if (remainder < 2) return lastDigit === remainder
+    return lastDigit === (11 - remainder)
+  } catch (e) {
+    return false
+  }
+}
+
+/**
+ * Normalize national ID input (convert Persian/Arabic digits to English)
+ */
+export const normalizeNationalId = (v) => {
+  return String(v || '')
+    .replace(/[۰-۹]/g, d => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
+    .replace(/[٠-٩]/g, d => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
+    .replace(/\D/g, '')
+    .trim()
+}
+
+/**
+ * Normalize Iranian mobile number
+ */
+export const normalizeIranianMobile = (v) => {
+  const digits = String(v || '')
+    .replace(/[۰-۹]/g, d => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
+    .replace(/[٠-٩]/g, d => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
+    .replace(/\D/g, '')
+  if (!digits) return ''
+  if (digits.length === 10 && !digits.startsWith('0')) return ('0' + digits).slice(0, 11)
+  return digits.slice(0, 11)
+}
+
+/**
+ * Validate Iranian mobile number format
+ */
+export const isValidIranianMobile = (v) => /^09\d{9}$/.test(String(v || '').trim())
+
+      ]]>
+    </file>
+    <file path="src/views/DashboardView.vue" lines="43" size="1634" encoding="utf-8">
+      <![CDATA[
+<template>
+  <div>
+    <div class="page-header">
+      <div>
+        <div class="page-title">داشبورد</div>
+        <div class="page-subtitle">نمای کلی سامانه</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="empty-state">
+        <i class="ri-dashboard-2-line"></i>
+        <h3>داشبورد در حال طراحی است</h3>
+        <p>شاخص‌ها، نمودارها و گزارش‌های این بخش پس از تعیین نیازمندی‌ها و داده‌های نهایی اضافه خواهند شد.</p>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+</script>
+
+<style scoped>
+.page-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 22px; gap: 16px;
+}
+.page-title { font-size: 23px; font-weight: 900; margin-bottom: 3px; }
+.page-subtitle { color: var(--text-2); font-size: 13px; }
+.card {
+  background: var(--surface); border-radius: var(--radius-lg);
+  border: 1px solid var(--border); padding: 20px;
+  box-shadow: var(--shadow-1); transition: all .2s;
+}
+.empty-state {
+  padding: 46px 20px; text-align: center;
+  border: 2px dashed var(--border-strong); border-radius: var(--radius-lg);
+  background: var(--surface-muted); transition: border-color .2s;
+}
+.empty-state:hover { border-color: var(--color-primary-light); }
+.empty-state i { font-size: 44px; color: var(--text-3); margin-bottom: 12px; display: block; }
+.empty-state h3 { font-size: 15.5px; margin-bottom: 5px; font-weight: 800; }
+.empty-state p { font-size: 13px; color: var(--text-2); margin: 0; max-width: 420px; margin-inline: auto; }
+</style>
+
+      ]]>
+    </file>
+    <file path="src/views/DonorCreateView.vue" lines="2" size="85" encoding="utf-8">
+      <![CDATA[
+<template><div>Placeholder: DonorCreateView</div></template>
+<script setup></script>
+
+      ]]>
+    </file>
+    <file path="src/views/DonorDetailView.vue" lines="2" size="85" encoding="utf-8">
+      <![CDATA[
+<template><div>Placeholder: DonorDetailView</div></template>
+<script setup></script>
+
+      ]]>
+    </file>
+    <file path="src/views/DonorListView.vue" lines="2" size="83" encoding="utf-8">
+      <![CDATA[
+<template><div>Placeholder: DonorListView</div></template>
+<script setup></script>
+
+      ]]>
+    </file>
+    <file path="src/views/LoginView.vue" lines="112" size="5042" encoding="utf-8">
+      <![CDATA[
+<template>
+  <div class="auth-page">
+    <div class="auth-card">
+      <div class="auth-brand">
+        <div class="auth-brand-icon"><i class="ri-heart-pulse-line"></i></div>
+        <div>
+          <div class="auth-brand-title">سامانه جامع پیوند کلیه</div>
+          <div class="auth-brand-sub">رجیستری ملی اهدا و پیوند</div>
+        </div>
+      </div>
+      <h2 style="font-size:21px;font-weight:900;margin-bottom:6px;">ورود به سامانه</h2>
+      <p style="color:var(--text-2);margin-bottom:20px;font-size:13px;">برای دسترسی به سامانه، اطلاعات خود را وارد کنید</p>
+      <div v-if="error" class="alert alert-danger"><i class="ri-error-warning-line"></i>{{ error }}</div>
+      <form @submit.prevent="handleLogin">
+        <div class="form-group">
+          <label class="form-label">ایمیل یا نام کاربری</label>
+          <div class="input-wrapper">
+            <input type="text" v-model="form.email" class="form-input" style="padding-right:42px;" required />
+            <i class="ri-user-line input-icon"></i>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">رمز عبور</label>
+          <div class="input-wrapper">
+            <input :type="showPass ? 'text' : 'password'" v-model="form.password" class="form-input" style="padding-right:42px;" required />
+            <i class="ri-lock-line input-icon"></i>
+            <button type="button" @click="showPass=!showPass" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-3);">
+              <i :class="showPass ? 'ri-eye-off-line' : 'ri-eye-line'"></i>
+            </button>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <label class="checkbox-wrap"><input type="checkbox" v-model="form.remember" /> مرا به خاطر بسپار</label>
+          <a href="#" style="color:var(--color-primary);font-size:13px;text-decoration:none;">فراموشی رمز؟</a>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block btn-lg" :disabled="loading">
+          <i v-if="!loading" class="ri-login-box-line"></i>
+          <i v-else class="ri-loader-4-line" style="animation:spin 1s linear infinite;"></i>
+          <span>{{ loading ? 'در حال ورود...' : 'ورود به سامانه' }}</span>
+        </button>
+      </form>
+      <div class="alert alert-info mt-4" style="margin-bottom:0;">
+        <i class="ri-information-line"></i>
+        <span>ورود آزمایشی (نسخه نمایشی): <b dir="ltr">coordinator@demo.com</b> / <b dir="ltr">demo123</b></span>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useToast } from '../composables/useToast'
+
+const router = useRouter()
+const { add: addToast } = useToast()
+
+const form = reactive({ email: 'coordinator@demo.com', password: 'demo123', remember: false })
+const showPass = ref(false)
+const loading = ref(false)
+const error = ref('')
+
+const handleLogin = async () => {
+  if (!form.email || !form.password) { 
+    error.value = 'نام کاربری و رمز الزامی است'
+    return 
+  }
+  loading.value = true
+  await new Promise(r => setTimeout(r, 800))
+  loading.value = false
+  addToast({ severity: 'success', summary: 'موفق', detail: 'وارد شدید' })
+  router.push('/dashboard')
+}
+</script>
+
+<style scoped>
+.auth-page {
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--grad-auth);
+  position: relative; overflow: hidden;
+  padding: 24px;
+}
+.auth-page::before, .auth-page::after {
+  content: ''; position: absolute; border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,.14); pointer-events: none;
+}
+.auth-page::before { width: 520px; height: 520px; top: -180px; left: -140px; }
+.auth-page::after  { width: 380px; height: 380px; bottom: -140px; right: -100px; background: radial-gradient(circle, rgba(255,255,255,.08), transparent 70%); }
+.auth-card {
+  width: 100%; max-width: 440px;
+  background: var(--surface);
+  border-radius: var(--radius-xl);
+  padding: 38px 40px;
+  box-shadow: var(--shadow-3);
+  position: relative; z-index: 1;
+  animation: slideUp .45s ease;
+}
+.auth-card::before {
+  content: ''; position: absolute; top: 0; right: 24px; left: 24px; height: 4px;
+  background: var(--grad-brand); border-radius: 0 0 6px 6px;
+}
+.auth-brand { display: flex; align-items: center; gap: 13px; margin-bottom: 26px; }
+.auth-brand-icon {
+  width: 50px; height: 50px; border-radius: 14px;
+  background: var(--grad-brand);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 26px; box-shadow: var(--shadow-brand);
+}
+.auth-brand-title { font-weight: 900; font-size: 17px; }
+.auth-brand-sub { font-size: 12px; color: var(--text-3); }
+</style>
+
+      ]]>
+    </file>
+    <file path="src/views/MatchingDashboardView.vue" lines="2" size="91" encoding="utf-8">
+      <![CDATA[
+<template><div>Placeholder: MatchingDashboardView</div></template>
+<script setup></script>
+
+      ]]>
+    </file>
+    <file path="src/views/RecipientCreateView.vue" lines="2" size="89" encoding="utf-8">
+      <![CDATA[
+<template><div>Placeholder: RecipientCreateView</div></template>
+<script setup></script>
+
+      ]]>
+    </file>
+    <file path="src/views/RecipientDetailView.vue" lines="2" size="89" encoding="utf-8">
+      <![CDATA[
+<template><div>Placeholder: RecipientDetailView</div></template>
+<script setup></script>
+
+      ]]>
+    </file>
+    <file path="src/views/RecipientListView.vue" lines="6" size="93" encoding="utf-8">
+      <![CDATA[
+<template>
+  <div>Placeholder: RecipientListView</div>
+</template>
+
+<script setup>
+</script>
+
+      ]]>
+    </file>
+    <file path="src/views/VirtualCrossmatchView.vue" lines="2" size="91" encoding="utf-8">
+      <![CDATA[
+<template><div>Placeholder: VirtualCrossmatchView</div></template>
+<script setup></script>
+
+      ]]>
+    </file>
+    <file path="src/views/WaitingListRecipientsView.vue" lines="2" size="95" encoding="utf-8">
+      <![CDATA[
+<template><div>Placeholder: WaitingListRecipientsView</div></template>
+<script setup></script>
+
+      ]]>
+    </file>
+    <file path="vite.config.js" lines="10" size="174" encoding="utf-8">
+      <![CDATA[
+import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+
+export default defineConfig({
+  plugins: [vue()],
+  server: {
+    port: 3000,
+    open: true
+  }
+})
+
+      ]]>
+    </file>
+  </files>
+</project>
