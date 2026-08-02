@@ -52,7 +52,8 @@ import { computed, reactive, watch } from 'vue'
 import { toFaDigits } from '../utils/date'
 import {
   antiHlaAOptions, antiHlaBOptions, antiHlaCOptions,
-  antiHlaDRB1Options, antiHlaDQB1Options, antiHlaDRB345Options
+  antiHlaDRB1Options, antiHlaDQB1Options, antiHlaDRB345Options,
+  antiHlaDQA1Options, antiHlaDPB1Options, antiHlaDPA1Options
 } from '../data/hlaOptions'
 
 const props = defineProps({
@@ -67,7 +68,8 @@ const form = reactive({
   classINone: false,
   classIINone: false,
   selectedA: [], selectedB: [], selectedC: [],
-  selectedDRB1: [], selectedDQB1: [], selectedDRB345: []
+  selectedDRB1: [], selectedDQB1: [], selectedDRB345: [],
+  selectedDQA1: [], selectedDPB1: [], selectedDPA1: []
 })
 
 const classIFields = [
@@ -78,7 +80,10 @@ const classIFields = [
 const classIIFields = [
   { key: 'selectedDRB1', label: 'HLA-DRB1', locus: 'DRB1', options: antiHlaDRB1Options },
   { key: 'selectedDQB1', label: 'HLA-DQB1', locus: 'DQB1', options: antiHlaDQB1Options },
-  { key: 'selectedDRB345', label: 'HLA-DRB345', locus: 'DRB345', options: antiHlaDRB345Options }
+  { key: 'selectedDRB345', label: 'HLA-DRB', locus: 'DRB', options: antiHlaDRB345Options },
+  { key: 'selectedDQA1', label: 'HLA-DQA1', locus: 'DQA1', options: antiHlaDQA1Options },
+  { key: 'selectedDPB1', label: 'HLA-DPB1', locus: 'DPB1', options: antiHlaDPB1Options },
+  { key: 'selectedDPA1', label: 'HLA-DPA1', locus: 'DPA1', options: antiHlaDPA1Options }
 ]
 const allFields = [...classIFields, ...classIIFields]
 const selectedCount = computed(() => allFields.reduce((sum, field) => sum + form[field.key].length, 0) + Number(form.classINone) + Number(form.classIINone))
