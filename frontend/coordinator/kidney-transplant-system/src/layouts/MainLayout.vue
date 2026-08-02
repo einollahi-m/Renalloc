@@ -40,13 +40,6 @@
 
     <div class="main" :class="{collapsed:collapsed}">
       <header class="topbar">
-        <div class="topbar-user">
-          <div class="avatar sm">{{ user.fullName[user.fullName.length - 4] }}</div>
-          <div class="topbar-user-text">
-            <span class="topbar-user-name">{{ user.fullName }}</span>
-            <span class="topbar-user-role">{{ user.role }}</span>
-          </div>
-        </div>
         <div class="topbar-actions">
           <div class="topbar-date">
             <span class="topbar-date-j">{{ currentDates.jalali }}</span>
@@ -57,7 +50,16 @@
             <i class="ri-notification-3-line"></i>
             <span class="notif-badge">3</span>
           </button>
-          <button class="icon-btn" title="تنظیمات کاربر"><i class="ri-user-settings-line"></i></button>
+          <div class="user-dropdown">
+            <button class="icon-btn user-btn" @click="showUserMenu = !showUserMenu" title="پروفایل کاربری">
+              <div class="avatar sm">{{ user.fullName[user.fullName.length - 4] }}</div>
+              <i class="ri-arrow-down-s-line"></i>
+            </button>
+            <div v-if="showUserMenu" class="dropdown-menu" @click.self="showUserMenu = false">
+              <button class="dropdown-item" @click="goToProfile"><i class="ri-user-line"></i> پروفایل کاربری</button>
+              <button class="dropdown-item" @click="logout"><i class="ri-logout-box-line"></i> خروج از سیستم</button>
+            </div>
+          </div>
         </div>
       </header>
       <main class="content">
@@ -120,6 +122,7 @@ const lookupModal = ref(false)
 const lookupNationalId = ref('')
 const lookupError = ref('')
 const lookupResult = ref(null)
+const showUserMenu = ref(false)
 const user = { fullName: 'دکتر محمد کاظمی', role: 'هماهنگ‌کننده پیوند' }
 
 const normalizeLookup = (e) => {
@@ -149,6 +152,16 @@ const openLookupModal = () => {
   lookupError.value = ''
   lookupResult.value = null
   lookupModal.value = true
+}
+const goToProfile = () => {
+  showUserMenu.value = false
+  // TODO: navigate to user profile page
+  window.toast.add({ severity: 'info', summary: 'اطلاعات', detail: 'صفحه پروفایل کاربری به زودی اضافه می‌شود' })
+}
+const logout = () => {
+  showUserMenu.value = false
+  // TODO: implement logout logic
+  window.toast.add({ severity: 'info', summary: 'خروج', detail: 'عملیات خروج از سیستم' })
 }
 setInterval(() => { currentDates.value = getCurrentDate(); }, 60000)
 </script>
