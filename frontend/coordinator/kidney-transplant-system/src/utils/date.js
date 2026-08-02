@@ -1,4 +1,4 @@
-import jalaali from 'jalaali-js'
+import * as jalaali from 'jalaali-js'
 
 /**
  * Convert Gregorian date to Jalali
