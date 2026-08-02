@@ -1,40 +1,47 @@
 <template>
   <div class="app-shell">
-    <!-- Sidebar -->
-    <aside class="sidebar" :class="{collapsed: collapsed}">
+    <aside class="sidebar" :class="{collapsed:collapsed}">
       <div class="sidebar-header">
         <div class="brand">
           <div class="brand-icon"><i class="ri-heart-pulse-line"></i></div>
           <div class="brand-text">سامانه پیوند کلیه</div>
         </div>
-        <button class="toggle-btn" @click="collapsed = !collapsed" title="جمع/باز کردن منو">
+        <button class="toggle-btn" @click="collapsed=!collapsed" title="جمع/باز کردن منو">
           <i :class="collapsed ? 'ri-menu-unfold-line' : 'ri-menu-fold-line'"></i>
+        </button>
+      </div>
+      <div class="lookup-section">
+        <button class="lookup-btn" @click="openLookupModal">
+          <i class="ri-search-2-line" style="font-size:18px;"></i>
+          <span>استعلام با کد ملی</span>
         </button>
       </div>
       <nav class="sidebar-nav">
         <div class="nav-section">
           <div class="nav-section-title">منوی اصلی</div>
-          <button class="nav-item" :class="{active: $route.name === 'dashboard'}" @click="$router.push('/dashboard')">
+          <button class="nav-item" :class="{active:$route.name==='dashboard'}" @click="$router.push('/dashboard')">
             <i class="ri-dashboard-2-line nav-icon"></i><span class="nav-label">داشبورد</span>
           </button>
-          <button class="nav-item" :class="{active: $route.path.startsWith('/recipients')}" @click="$router.push('/recipients')">
+          <button class="nav-item" :class="{active:$route.path.startsWith('/recipients')}" @click="$router.push('/recipients')">
             <i class="ri-user-heart-line nav-icon"></i><span class="nav-label">گیرندگان</span>
           </button>
-          <button class="nav-item" :class="{active: $route.path.startsWith('/donors')}" @click="$router.push('/donors')">
+          <button class="nav-item" :class="{active:$route.path.startsWith('/donors')}" @click="$router.push('/donors')">
             <i class="ri-hand-heart-line nav-icon"></i><span class="nav-label">اهداکنندگان</span>
           </button>
-          <button class="nav-item" :class="{active: $route.path.startsWith('/matching')}" @click="$router.push('/matching')">
+          <button class="nav-item" :class="{active:$route.path.startsWith('/matching')}" @click="$router.push('/matching')">
             <i class="ri-exchange-2-line nav-icon"></i><span class="nav-label">سازگاری‌سنجی</span>
+          </button>
+          <button class="nav-item" :class="{active:$route.path==='/waiting-list/recipients'}" @click="$router.push('/waiting-list/recipients')">
+            <i class="ri-list-check-2 nav-icon"></i><span class="nav-label">لیست انتظار گیرندگان</span>
           </button>
         </div>
       </nav>
     </aside>
 
-    <!-- Main Content -->
-    <div class="main" :class="{collapsed: collapsed}">
+    <div class="main" :class="{collapsed:collapsed}">
       <header class="topbar">
         <div class="topbar-user">
-          <div class="avatar sm">{{ userInitial }}</div>
+          <div class="avatar sm">{{ user.fullName[user.fullName.length - 4] }}</div>
           <div class="topbar-user-text">
             <span class="topbar-user-name">{{ user.fullName }}</span>
             <span class="topbar-user-role">{{ user.role }}</span>
@@ -45,115 +52,103 @@
             <span class="topbar-date-j">{{ currentDates.jalali }}</span>
             <span class="topbar-date-g" dir="ltr">{{ currentDates.gregorian }}</span>
           </div>
+          <div class="topbar-divider"></div>
+          <button class="icon-btn" title="اعلان‌ها">
+            <i class="ri-notification-3-line"></i>
+            <span class="notif-badge">3</span>
+          </button>
+          <button class="icon-btn" title="تنظیمات کاربر"><i class="ri-user-settings-line"></i></button>
         </div>
       </header>
       <main class="content">
-        <router-view />
+        <router-view v-slot="{Component}">
+          <transition name="slide" mode="out-in">
+            <component :is="Component" />
+          </transition>
+        </router-view>
       </main>
+    </div>
+
+    <!-- National ID Lookup Modal -->
+    <div v-if="lookupModal" class="modal-overlay" @click.self="lookupModal=false">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>استعلام با کد ملی</h3>
+          <button class="modal-close" @click="lookupModal=false"><i class="ri-close-line"></i></button>
+        </div>
+        <div v-if="lookupError" class="alert alert-danger"><i class="ri-error-warning-line"></i>{{ lookupError }}</div>
+        <div class="form-group">
+          <label class="form-label">کد ملی (۱۰ رقم)</label>
+          <input type="text" v-model="lookupNationalId" class="form-input" placeholder="مثال: 1234567891" @input="normalizeLookup" maxlength="10" inputmode="numeric" />
+          <div v-if="lookupNationalId && lookupNationalId.length < 10" class="form-error text-xs">کد ملی باید ۱۰ رقم باشد</div>
+        </div>
+        <div v-if="lookupResult" class="lookup-result">
+          <div class="lookup-result-header">
+            <i class="ri-check-double-line" style="color:var(--color-success);font-size:24px;"></i>
+            <div>
+              <div class="font-bold">{{ lookupResult.fullName }}</div>
+              <div class="text-sm text-secondary">{{ lookupResult.type === 'recipient' ? 'گیرنده' : 'اهداکننده' }} پیدا شد</div>
+            </div>
+          </div>
+          <div class="lookup-info">
+            <div class="lookup-info-item"><div class="label">کد ملی</div><div class="value">{{ lookupResult.nationalId }}</div></div>
+            <div class="lookup-info-item"><div class="label">گروه خونی</div><div class="value">{{ lookupResult.bloodType }}{{ lookupResult.rhFactor === 'positive' ? '+' : '-' }}</div></div>
+            <div class="lookup-info-item"><div class="label">جنسیت</div><div class="value">{{ lookupResult.gender === 'male' ? 'مرد' : 'زن' }}</div></div>
+            <div class="lookup-info-item"><div class="label">تاریخ تولد</div><div class="value">{{ formatFaDate(lookupResult.birthDate) }}</div></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" @click="lookupModal=false">لغو</button>
+          <button class="btn btn-primary" @click="viewProfile" :disabled="!lookupResult"><i class="ri-eye-line"></i> نمایش پرونده</button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
-import { getCurrentDate } from '../utils/date'
+import { getCurrentDate, formatFaDate } from '../utils/date'
+import { normalizeNationalId, nationalIdChecker } from '../utils/validation'
+import { mockRecipients, mockDonors } from '../data/mockData'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const collapsed = ref(false)
-const user = { fullName: 'دکتر محمد کاظمی', role: 'هماهنگ‌کننده پیوند' }
-const userInitial = computed(() => user.fullName[user.fullName.length - 1])
 const currentDates = ref(getCurrentDate())
+const lookupModal = ref(false)
+const lookupNationalId = ref('')
+const lookupError = ref('')
+const lookupResult = ref(null)
+const user = { fullName: 'دکتر محمد کاظمی', role: 'هماهنگ‌کننده پیوند' }
 
-setInterval(() => {
-  currentDates.value = getCurrentDate()
-}, 60000)
+const normalizeLookup = (e) => {
+  lookupNationalId.value = normalizeNationalId(e.target.value)
+  lookupError.value = ''
+  lookupResult.value = null
+  if (lookupNationalId.value.length === 10) {
+    if (!nationalIdChecker(lookupNationalId.value)) { lookupError.value = 'کد ملی نامعتبر است'; return; }
+    const found = mockRecipients.find(r => r.nationalId === lookupNationalId.value)
+    if (found) { lookupResult.value = { ...found, type: 'recipient' }; }
+    else {
+      const donorFound = mockDonors.find(d => d.nationalId === lookupNationalId.value)
+      if (donorFound) lookupResult.value = { ...donorFound, type: 'donor' };
+      else lookupError.value = 'فردی با این کد ملی یافت نشد'
+    }
+  }
+}
+const viewProfile = () => {
+  if (!lookupResult.value) return
+  const type = lookupResult.value.type
+  const id = lookupResult.value._id
+  lookupModal.value = false
+  router.push(type === 'recipient' ? `/recipients/${id}` : `/donors/${id}`)
+}
+const openLookupModal = () => {
+  lookupNationalId.value = ''
+  lookupError.value = ''
+  lookupResult.value = null
+  lookupModal.value = true
+}
+setInterval(() => { currentDates.value = getCurrentDate(); }, 60000)
 </script>
-
-<style scoped>
-.app-shell {
-  min-height: 100vh; display: flex;
-  background: radial-gradient(1100px 420px at 88% -8%, rgba(14,165,233,.06), transparent 60%), var(--surface-ground);
-}
-.sidebar {
-  width: 260px; background: var(--surface);
-  border-left: 1px solid var(--border);
-  display: flex; flex-direction: column;
-  position: fixed; right: 0; top: 0; bottom: 0; z-index: 40;
-  transition: width .3s ease; overflow: hidden;
-}
-.sidebar.collapsed { width: 72px; }
-.sidebar.collapsed .nav-label,
-.sidebar.collapsed .brand-text,
-.sidebar.collapsed .nav-section-title { display: none; }
-.sidebar-header {
-  padding: 15px 16px; border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: space-between; gap: 8px;
-}
-.brand { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
-.brand-icon {
-  width: 38px; height: 38px; background: var(--grad-brand);
-  border-radius: var(--radius-md);
-  display: flex; align-items: center; justify-content: center;
-  color: #fff; font-size: 22px; box-shadow: var(--shadow-brand); flex-shrink: 0;
-}
-.brand-text { font-weight: 800; font-size: 14.5px; white-space: nowrap; }
-.toggle-btn {
-  width: 32px; height: 32px; border-radius: var(--radius-sm);
-  background: var(--surface-muted); border: none; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  color: var(--text-2); transition: all .2s;
-}
-.toggle-btn:hover { background: var(--color-primary-soft); color: var(--color-primary-dark); }
-.sidebar-nav { flex: 1; overflow-y: auto; padding: 10px; }
-.nav-section { margin-bottom: 12px; }
-.nav-section-title {
-  padding: 0 12px 6px; font-size: 11px; font-weight: 700;
-  color: var(--text-3); letter-spacing: .5px;
-}
-.nav-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 9px 12px; border-radius: var(--radius-sm);
-  color: var(--text-2); cursor: pointer; font-family: inherit;
-  background: transparent; border: none; width: 100%; text-align: right;
-  transition: all .2s; font-weight: 500; margin-bottom: 2px;
-}
-.nav-item:hover { background: var(--surface-muted); color: var(--color-primary); }
-.nav-item.active {
-  background: linear-gradient(135deg, var(--color-primary-soft) 0%, #cffafe 100%);
-  color: var(--color-primary-dark); font-weight: 700; position: relative;
-}
-.nav-item.active::before {
-  content: ''; position: absolute; right: 0; top: 20%; bottom: 20%;
-  width: 3px; background: var(--color-primary); border-radius: 2px;
-}
-.nav-icon { font-size: 20px; flex-shrink: 0; }
-.nav-label { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-.main {
-  flex: 1; margin-right: 260px;
-  display: flex; flex-direction: column; min-height: 100vh;
-  transition: margin-right .3s ease;
-}
-.main.collapsed { margin-right: 72px; }
-.topbar {
-  height: 62px; background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 0 24px; position: sticky; top: 0; z-index: 30; gap: 16px;
-}
-.topbar-user { display: flex; align-items: center; gap: 10px; }
-.topbar-user-text { display: flex; flex-direction: column; line-height: 1.35; }
-.topbar-user-name { font-size: 13px; font-weight: 700; }
-.topbar-user-role { font-size: 11.5px; color: var(--text-3); }
-.topbar-actions { display: flex; align-items: center; gap: 10px; }
-.topbar-date { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.4; padding: 0 2px; }
-.topbar-date-j { font-size: 12.5px; font-weight: 700; color: var(--text-1); }
-.topbar-date-g { font-size: 11px; font-weight: 500; color: var(--text-3); }
-.content { padding: 24px; flex: 1; }
-.avatar {
-  width: 40px; height: 40px; border-radius: 50%;
-  background: var(--grad-brand); color: #fff;
-  display: inline-flex; align-items: center; justify-content: center;
-  font-weight: 700; font-size: 14px; flex-shrink: 0;
-}
-.avatar.sm { width: 32px; height: 32px; font-size: 12px; }
-</style>
