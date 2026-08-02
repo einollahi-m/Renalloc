@@ -5,45 +5,63 @@ node_modules/
 # Build artifacts
 dist/
 build/
-target/
+*.js.map
+*.css.map
 
-# Package lock files
-package-lock.json
-
-# Environment variables
+# Environment
 .env
 .env.local
-*.env.*
+.env.*
 
-# IDE files
+# Editors
 .vscode/
 .idea/
 *.swp
 *.swo
-*.tmp
 
 # Logs
 *.log
 
-# Python cache (if any Python components)
+# Python (if applicable)
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
 
-# Coverage reports
+# Coverage
+.coverage
 coverage/
 htmlcov/
-.coverage
+.nyc_output/
+
+# Testing
+.mypy_cache/
+.pytest_cache/
+.tox/
+
+# OS generated files
+.DS_Store
+Thumbs.db
 
 # Temporary files
 *.tmp
 *.temp
 *.bak
 
-# OS specific
-.DS_Store
-Thumbs.db
+# Compiled files
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.a
+*.out
 
 # Compressed files
 *.zip
