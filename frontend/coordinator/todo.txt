@@ -1,1 +1,0 @@
-Coordinators are the one registering the Recipients and Donors.
