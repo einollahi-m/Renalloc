@@ -179,8 +179,9 @@
             <label class="form-label">متقاضی پیوند از *</label>
             <div class="check-chips required-choice-group" :class="{'choice-error': donorSourceError}">
               <label class="check-chip" :class="{checked: form.donor_living}"><input type="checkbox" v-model="form.donor_living" @change="donorSourceError=''" /><i class="ri-user-heart-line"></i> اهداکننده زنده</label>
-              <label class="check-chip" :class="{checked: form.donor_deceased}"><input type="checkbox" v-model="form.donor_deceased" @change="donorSourceError=''" /><i class="ri-ribbon-line"></i> اهداکننده جسد</label>
+              <label class="check-chip" :class="{checked: form.donor_deceased, disabled: form.citizenship==='foreign'}"><input type="checkbox" v-model="form.donor_deceased" :disabled="form.citizenship==='foreign'" @change="donorSourceError=''" /><i class="ri-ribbon-line"></i> اهداکننده جسد</label>
             </div>
+            <div v-if="form.citizenship==='foreign'" class="recipient-donor-source-hint">برای گیرنده غیر ایرانی فقط اهداکننده زنده قابل انتخاب است.</div>
             <div v-if="donorSourceError" class="form-error">{{ donorSourceError }}</div>
           </div>
         </div>
@@ -586,8 +587,14 @@ watch(() => form.citizenship, (citizenship) => {
   nationalIdError.value = ''
   nationalIdChecking.value = false
   nationalIdValidated.value = false
-  if (citizenship === 'iranian') form.nationality = ''
-  else form.insurance = []
+  if (citizenship === 'iranian') {
+    form.nationality = ''
+  } else {
+    form.insurance = []
+    form.donor_living = true
+    form.donor_deceased = false
+    donorSourceError.value = ''
+  }
 })
 
 const normalizeNumericInputEvent = event => {

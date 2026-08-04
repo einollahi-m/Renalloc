@@ -463,6 +463,16 @@ html, body {
 .check-chip:hover { border-color: var(--color-primary-light); transform: translateY(-1px); }
 .check-chip.checked { border-color: var(--color-primary); background: var(--color-primary-soft); color: var(--color-primary-dark); }
 .check-chip.checked i { color: var(--color-primary-dark); }
+.check-chip.disabled {
+  cursor: not-allowed;
+  opacity: .48;
+  border-color: var(--border);
+  background: var(--surface-ground);
+  color: var(--text-3);
+  transform: none;
+}
+.check-chip.disabled:hover { border-color: var(--border); transform: none; }
+.recipient-donor-source-hint { margin-top: 7px; color: var(--text-3); font-size: 11.5px; }
 .cause-chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .cause-chip {
   display: inline-flex; align-items: center; gap: 6px;
