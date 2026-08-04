@@ -26,4 +26,10 @@ app.component('viral-tests-modal', ViralTestsModal)
 const { add } = useToast()
 window.toast = { add }
 
+window.addEventListener('auth:unauthorized', () => {
+  if (router.currentRoute.value.meta.requiresAuth) {
+    router.push({ name: 'login', query: { redirect: router.currentRoute.value.fullPath } })
+  }
+})
+
 app.mount('#app')

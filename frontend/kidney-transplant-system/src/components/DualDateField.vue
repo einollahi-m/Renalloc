@@ -7,7 +7,7 @@
     </div>
     <div class="dp-field" @click="togglePanel" tabindex="0" @keydown.enter.prevent="togglePanel" @keydown.esc="open=false">
       <i class="ri-calendar-2-line dp-field-icon"></i>
-      <input class="dp-display" :value="displayValue" readonly :placeholder="mode==='jalali' ? '۱۴۰۵/۰۵/۱۰' : '2026-08-01'" :dir="mode==='jalali' ? 'rtl' : 'ltr'" />
+      <input class="dp-display" :value="displayValue" readonly placeholder="تاریخ" :dir="mode==='jalali' ? 'rtl' : 'ltr'" />
       <button v-if="modelValue" type="button" class="dp-clear" @click.stop="clear" title="پاک کردن"><i class="ri-close-circle-line"></i></button>
       <i class="ri-arrow-down-s-line dp-caret" :class="{rotated: open}"></i>
     </div>

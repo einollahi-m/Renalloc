@@ -147,8 +147,8 @@
               <label class="form-label" for="recipient-height">قد (سانتی‌متر)</label>
             </div>
             <div class="measure-input-pair">
-              <input id="recipient-weight" type="text" v-model="newWeight" class="form-input" placeholder="72.5" inputmode="decimal" @keydown.up.prevent="adjustWeight(0.5)" @keydown.down.prevent="adjustWeight(-0.5)" />
-              <input id="recipient-height" type="text" v-model="newHeight" class="form-input" placeholder="175" inputmode="numeric" />
+              <input id="recipient-weight" type="text" v-model="newWeight" class="form-input" placeholder="مقدار وزن" inputmode="decimal" @keydown.up.prevent="adjustWeight(0.5)" @keydown.down.prevent="adjustWeight(-0.5)" />
+              <input id="recipient-height" type="text" v-model="newHeight" class="form-input" placeholder="مقدار قد" inputmode="numeric" />
             </div>
           </div>
         </div>

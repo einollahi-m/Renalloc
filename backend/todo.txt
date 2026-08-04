@@ -1,1 +1,0 @@
-Django app using postgres for backend (API), also Admin UI

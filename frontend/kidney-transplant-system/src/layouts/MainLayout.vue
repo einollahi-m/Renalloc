@@ -52,7 +52,7 @@
           </button>
           <div class="user-dropdown">
             <button class="icon-btn user-btn" @click="showUserMenu = !showUserMenu" title="پروفایل کاربری">
-              <div class="avatar sm">{{ user.fullName[user.fullName.length - 4] }}</div>
+              <div class="avatar sm">{{ userInitial }}</div>
               <i class="ri-arrow-down-s-line"></i>
             </button>
             <div v-if="showUserMenu" class="dropdown-menu" @click.self="showUserMenu = false">
@@ -114,8 +114,10 @@ import { getCurrentDate, formatFaDate } from '../utils/date'
 import { normalizeNationalId, nationalIdChecker } from '../utils/validation'
 import { mockRecipients, mockDonors } from '../data/mockData'
 import { useRouter } from 'vue-router'
+import { useAuth } from '../composables/useAuth'
 
 const router = useRouter()
+const { authState, logout: logoutUser } = useAuth()
 const collapsed = ref(false)
 const currentDates = ref(getCurrentDate())
 const lookupModal = ref(false)
@@ -123,7 +125,7 @@ const lookupNationalId = ref('')
 const lookupError = ref('')
 const lookupResult = ref(null)
 const showUserMenu = ref(false)
-const user = { fullName: 'دکتر محمد کاظمی', role: 'هماهنگ‌کننده پیوند' }
+const userInitial = computed(() => authState.user?.full_name?.trim().charAt(0) || 'ک')
 
 const normalizeLookup = (e) => {
   lookupNationalId.value = normalizeNationalId(e.target.value)
@@ -157,10 +159,11 @@ const goToProfile = () => {
   showUserMenu.value = false
   router.push('/profile')
 }
-const logout = () => {
+const logout = async () => {
   showUserMenu.value = false
-  // TODO: implement logout logic
-  window.toast.add({ severity: 'info', summary: 'خروج', detail: 'عملیات خروج از سیستم' })
+  await logoutUser()
+  window.toast.add({ severity: 'info', summary: 'خروج', detail: 'با موفقیت از سامانه خارج شدید' })
+  router.push('/login')
 }
 setInterval(() => { currentDates.value = getCurrentDate(); }, 60000)
 </script>

@@ -395,7 +395,7 @@ html, body {
 .identity-blood-field .blood-row .form-select { width: 78px; padding-inline: 8px; }
 .rh-choice-field { min-width: 86px; }
 .rh-choice-field > .form-label { margin-bottom: 5px; text-align: center; }
-.radio-pills.radio-stack { flex-direction: column; gap: 5px; }
+.radio-pills.radio-stack { flex-direction: row; gap: 5px; }
 .radio-pills.radio-stack .radio-pill { flex: 0 0 auto; min-height: 34px; padding: 5px 9px; }
 .contact-fields-grid {
   grid-template-columns: repeat(2, minmax(185px, 220px));
@@ -463,6 +463,17 @@ html, body {
 .check-chip:hover { border-color: var(--color-primary-light); transform: translateY(-1px); }
 .check-chip.checked { border-color: var(--color-primary); background: var(--color-primary-soft); color: var(--color-primary-dark); }
 .check-chip.checked i { color: var(--color-primary-dark); }
+.radio-pill.disabled {
+  cursor: not-allowed;
+  opacity: .48;
+  border-color: var(--border);
+  background: var(--surface-ground);
+  color: var(--text-3);
+  transform: none;
+}
+.radio-pill.disabled:hover { border-color: var(--border); }
+.donor-type-field { max-width: 480px; margin-top: 14px; }
+.donor-type-hint { margin-top: 7px; color: var(--text-3); font-size: 11.5px; }
 .cause-chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .cause-chip {
   display: inline-flex; align-items: center; gap: 6px;

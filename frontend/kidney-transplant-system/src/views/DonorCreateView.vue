@@ -66,6 +66,18 @@
             </select>
           </div>
         </div>
+        <div class="form-group donor-type-field">
+          <label class="form-label">نوع اهداکننده *</label>
+          <div class="radio-pills">
+            <label class="radio-pill" :class="{checked: form.donor_type==='living'}">
+              <input type="radio" name="donor-type" v-model="form.donor_type" value="living" /> اهداکننده زنده
+            </label>
+            <label class="radio-pill" :class="{checked: form.donor_type==='deceased', disabled: form.citizenship==='foreign'}">
+              <input type="radio" name="donor-type" v-model="form.donor_type" value="deceased" :disabled="form.citizenship==='foreign'" /> اهداکننده جسد
+            </label>
+          </div>
+          <div v-if="form.citizenship==='foreign'" class="donor-type-hint">اهداکننده غیر ایرانی فقط می‌تواند اهداکننده زنده باشد.</div>
+        </div>
         <div class="form-grid identity-details-grid">
           <div class="form-group">
             <label class="form-label">نام *</label>
@@ -147,8 +159,8 @@
               <label class="form-label" for="donor-height">قد (سانتی‌متر)</label>
             </div>
             <div class="measure-input-pair">
-              <input id="donor-weight" type="text" v-model="newWeight" class="form-input" placeholder="72.5" inputmode="decimal" @keydown.up.prevent="adjustWeight(0.5)" @keydown.down.prevent="adjustWeight(-0.5)" />
-              <input id="donor-height" type="text" v-model="newHeight" class="form-input" placeholder="175" inputmode="numeric" />
+              <input id="donor-weight" type="text" v-model="newWeight" class="form-input" placeholder="مقدار وزن" inputmode="decimal" @keydown.up.prevent="adjustWeight(0.5)" @keydown.down.prevent="adjustWeight(-0.5)" />
+              <input id="donor-height" type="text" v-model="newHeight" class="form-input" placeholder="مقدار قد" inputmode="numeric" />
             </div>
           </div>
         </div>
@@ -408,6 +420,7 @@ const toFa = toFaDigits
 
 const form = reactive({
   citizenship: 'iranian', national_id: '', first_name: '', last_name: '', gender: null,
+  donor_type: null,
   blood_type: null, rh_factor: null, phone: '', emergency_contact_phone: '',
   education: null, insurance: [], marital_status: null, nationality: '', birth_date: '',
   is_smoker: false, has_addiction: false, has_alcohol: false,
@@ -454,8 +467,12 @@ watch(() => form.citizenship, (citizenship) => {
   nationalIdError.value = ''
   nationalIdChecking.value = false
   nationalIdValidated.value = false
-  if (citizenship === 'iranian') form.nationality = ''
-  else form.insurance = []
+  if (citizenship === 'iranian') {
+    form.nationality = ''
+  } else {
+    form.insurance = []
+    form.donor_type = 'living'
+  }
 })
 
 const normalizeNumericInputEvent = event => {
@@ -656,6 +673,10 @@ const nextStep = () => {
       return
     }
     if (form.citizenship === 'iranian' && !validateNationalIdField()) return
+    if (!form.donor_type) {
+      window.toast.add({ severity: 'warning', summary: 'خطا', detail: 'انتخاب نوع اهداکننده الزامی است' })
+      return
+    }
     if (!form.gender) {
       window.toast.add({ severity: 'warning', summary: 'خطا', detail: 'انتخاب جنسیت الزامی است' })
       return

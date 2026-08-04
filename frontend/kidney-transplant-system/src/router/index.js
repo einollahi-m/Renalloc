@@ -16,13 +16,19 @@ import MatchingDashboardView from '../views/MatchingDashboardView.vue'
 import VirtualCrossmatchView from '../views/VirtualCrossmatchView.vue'
 import WaitingListRecipientsView from '../views/WaitingListRecipientsView.vue'
 import UserProfileView from '../views/UserProfileView.vue'
+import ForgotPasswordView from '../views/ForgotPasswordView.vue'
+import ResetPasswordView from '../views/ResetPasswordView.vue'
+import { useAuth } from '../composables/useAuth'
 
 const routes = [
   { path: '/', redirect: '/login' },
-  { path: '/login', name: 'login', component: LoginView },
+  { path: '/login', name: 'login', component: LoginView, meta: { guestOnly: true } },
+  { path: '/forgot-password', name: 'forgot-password', component: ForgotPasswordView },
+  { path: '/reset-password', name: 'reset-password', component: ResetPasswordView },
   {
     path: '/',
     component: MainLayout,
+    meta: { requiresAuth: true },
     children: [
       { path: 'dashboard', name: 'dashboard', component: DashboardView },
       { path: 'recipients', component: RecipientListView },
@@ -42,6 +48,20 @@ const routes = [
 const router = createRouter({
   history: createWebHashHistory(),
   routes
+})
+
+router.beforeEach(async (to) => {
+  const { ensureAuthenticated } = useAuth()
+  const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
+
+  // Revalidate the token with Django before every protected navigation.
+  if (requiresAuth && !(await ensureAuthenticated(true))) {
+    return { name: 'login', query: { redirect: to.fullPath } }
+  }
+  if (to.meta.guestOnly && (await ensureAuthenticated())) {
+    return { name: 'dashboard' }
+  }
+  return true
 })
 
 export default router

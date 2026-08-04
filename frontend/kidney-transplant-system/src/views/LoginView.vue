@@ -9,20 +9,19 @@
         </div>
       </div>
       <h2 style="font-size:21px;font-weight:900;margin-bottom:6px;">ورود به سامانه</h2>
-      <p style="color:var(--text-2);margin-bottom:20px;font-size:13px;">برای دسترسی به سامانه، اطلاعات خود را وارد کنید</p>
       <div v-if="error" class="alert alert-danger"><i class="ri-error-warning-line"></i>{{ error }}</div>
       <form @submit.prevent="handleLogin">
         <div class="form-group">
           <label class="form-label">ایمیل یا نام کاربری</label>
           <div class="input-wrapper">
-            <input type="text" v-model="form.email" class="form-input" style="padding-right:42px;" required />
+            <input type="text" v-model.trim="form.identifier" class="form-input" style="padding-right:42px;" placeholder="ایمیل یا نام کاربری را وارد کنید." autocomplete="username" required />
             <i class="ri-user-line input-icon"></i>
           </div>
         </div>
         <div class="form-group">
           <label class="form-label">رمز عبور</label>
           <div class="input-wrapper">
-            <input :type="showPass ? 'text' : 'password'" v-model="form.password" class="form-input" style="padding-right:42px;" required />
+            <input :type="showPass ? 'text' : 'password'" v-model="form.password" class="form-input" style="padding-right:42px;" autocomplete="current-password" required placeholder="رمز عبور را وارد کنید."/>
             <i class="ri-lock-line input-icon"></i>
             <button type="button" @click="showPass=!showPass" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-3);">
               <i :class="showPass ? 'ri-eye-off-line' : 'ri-eye-line'"></i>
@@ -31,7 +30,7 @@
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
           <label class="checkbox-wrap"><input type="checkbox" v-model="form.remember" /> مرا به خاطر بسپار</label>
-          <a href="#" style="color:var(--color-primary);font-size:13px;text-decoration:none;">فراموشی رمز؟</a>
+          <router-link to="/forgot-password" style="color:var(--color-primary);font-size:13px;text-decoration:none;">فراموشی رمز؟</router-link>
         </div>
         <button type="submit" class="btn btn-primary btn-block btn-lg" :disabled="loading">
           <i v-if="!loading" class="ri-login-box-line"></i>
@@ -39,10 +38,6 @@
           <span>{{ loading ? 'در حال ورود...' : 'ورود به سامانه' }}</span>
         </button>
       </form>
-      <div class="alert alert-info mt-4" style="margin-bottom:0;">
-        <i class="ri-information-line"></i>
-        <span>ورود آزمایشی (نسخه نمایشی): <b dir="ltr">coordinator@demo.com</b> / <b dir="ltr">demo123</b></span>
-      </div>
     </div>
   </div>
 </template>
@@ -51,25 +46,34 @@
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from '../composables/useToast'
+import { useAuth } from '../composables/useAuth'
 
 const router = useRouter()
 const { add: addToast } = useToast()
+const { login } = useAuth()
 
-const form = reactive({ email: 'coordinator@demo.com', password: 'demo123', remember: false })
+const form = reactive({ identifier: '', password: '', remember: false })
 const showPass = ref(false)
 const loading = ref(false)
 const error = ref('')
 
 const handleLogin = async () => {
-  if (!form.email || !form.password) { 
+  if (!form.identifier || !form.password) {
     error.value = 'نام کاربری و رمز الزامی است'
     return 
   }
   loading.value = true
-  await new Promise(r => setTimeout(r, 800))
-  loading.value = false
-  addToast({ severity: 'success', summary: 'موفق', detail: 'وارد شدید' })
-  router.push('/dashboard')
+  error.value = ''
+  try {
+    await login(form)
+    addToast({ severity: 'success', summary: 'موفق', detail: 'با موفقیت وارد شدید' })
+    const redirect = String(router.currentRoute.value.query.redirect || '')
+    router.push(redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : '/dashboard')
+  } catch (requestError) {
+    error.value = requestError.message
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 
