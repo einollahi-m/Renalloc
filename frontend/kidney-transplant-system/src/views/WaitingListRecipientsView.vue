@@ -1,20 +1,59 @@
 <template>
   <div>
-    <div class="page-header">
-      <div>
-        <div class="page-title">لیست انتظار گیرندگان</div>
-        <div class="page-subtitle">مدیریت لیست انتظار گیرندگان پیوند کلیه</div>
-      </div>
+    <div class="page-header"><div><div class="page-title">لیست انتظار گیرندگان</div><div class="page-subtitle">ماشین وضعیت، اولویت عدالت و سابقه قابل ممیزی</div></div><button class="btn btn-secondary" @click="load"><i class="ri-refresh-line"></i> به‌روزرسانی</button></div>
+    <div v-if="error" class="alert alert-danger"><i class="ri-error-warning-line"></i>{{ error }}</div>
+    <div class="summary-grid">
+      <div class="summary-card"><span>کل نتایج</span><strong>{{ pagination.count }}</strong></div>
+      <div class="summary-card active"><span>فعال در این صفحه</span><strong>{{ count('active') }}</strong></div>
+      <div class="summary-card candidate"><span>فرایند تطبیق در صفحه</span><strong>{{ matchingCount }}</strong></div>
+      <div class="summary-card inactive"><span>غیرفعال/حذف در صفحه</span><strong>{{ inactiveCount }}</strong></div>
     </div>
-    <div class="card">
-      <div class="empty-state">
-        <i class="ri-list-check-2"></i>
-        <h3>لیست انتظار در حال طراحی است</h3>
-        <p>این بخش پس از تکمیل طراحی، امکان مدیریت و مشاهده لیست انتظار گیرندگان را فراهم خواهد کرد.</p>
+    <section class="card filters">
+      <div class="form-group"><label class="form-label">جستجو</label><input v-model="search" class="form-input" placeholder="نام یا کد ملی" @keyup.enter="load(1)"></div>
+      <div class="form-group"><label class="form-label">وضعیت</label><select v-model="statusFilter" class="form-input" @change="load(1)"><option value="">همه وضعیت‌ها</option><option v-for="(label,key) in statusLabels" :key="key" :value="key">{{ label }}</option></select></div><button class="btn btn-primary" @click="load(1)">اعمال</button>
+    </section>
+    <section class="card table-card">
+      <div v-if="loading" class="empty-state"><i class="ri-loader-4-line spin"></i><p>در حال بارگذاری…</p></div>
+      <div v-else class="table-wrap">
+        <table><thead><tr><th>گیرنده</th><th>گروه خونی</th><th>وضعیت</th><th>از تاریخ</th><th>cPRA</th><th>فوریت</th><th>ضریب منطقه</th><th>عملیات</th></tr></thead>
+          <tbody><tr v-for="item in filtered" :key="item._id"><td><strong>{{ item.fullName }}</strong><small>{{ item.nationalId }}</small></td><td dir="ltr">{{ item.bloodType }}{{ item.rhFactor==='positive'?'+':'-' }}</td><td><span class="status" :class="item.status">{{ item.statusDisplay }}</span></td><td>{{ item.waitingSince || '—' }}</td><td>{{ item.cpra ?? '—' }}</td><td><span class="meter"><i :style="{width:`${item.medicalUrgency}%`}"></i></span>{{ item.medicalUrgency }}<small v-if="item.isEmergency" class="emergency-mark">اورژانسی</small></td><td>{{ item.regionalDisadvantage }}</td><td><div class="row-actions"><button v-if="canManage&&item.allowedTransitions.includes('active')" class="btn btn-primary btn-sm" @click="addToWaiting(item)"><i class="ri-user-add-line"></i> افزودن به لیست انتظار</button><button v-if="canManage&&item.allowedTransitions.includes('temporarily_inactive')" class="btn btn-secondary btn-sm" @click="leaveWaiting(item)"><i class="ri-pause-line"></i> خروج موقت</button><button v-if="canManage" class="icon-action" title="تغییر وضعیت" :disabled="!item.allowedTransitions.length" @click="openStatus(item)"><i class="ri-arrow-left-right-line"></i></button><button v-if="canManage" class="icon-action" title="ویرایش اولویت" @click="openPriority(item)"><i class="ri-scales-3-line"></i></button><button class="icon-action" title="پرونده" @click="$router.push(`/recipients/${item._id}`)"><i class="ri-eye-line"></i></button></div></td></tr></tbody>
+        </table>
+        <div v-if="!filtered.length" class="empty-state"><i class="ri-list-check-2-line"></i><p>موردی مطابق فیلتر یافت نشد.</p></div>
+        <pagination-controls :pagination="pagination" @change="load" />
       </div>
-    </div>
+    </section>
+
+    <div v-if="canManage&&statusModal" class="modal-overlay" @click.self="statusModal=false"><div class="modal small-modal"><div class="modal-header"><h3>تغییر وضعیت {{ current.fullName }}</h3><button class="modal-close" @click="statusModal=false"><i class="ri-close-line"></i></button></div><div class="current-state">وضعیت فعلی: <strong>{{ current.statusDisplay }}</strong></div><div class="form-group"><label class="form-label">وضعیت بعدی</label><select v-model="nextStatus" class="form-input"><option value="">انتخاب کنید</option><option v-for="key in current.allowedTransitions" :key="key" :value="key">{{ statusLabels[key] || key }}</option></select></div><div class="form-group"><label class="form-label">دلیل تغییر (الزامی)</label><textarea v-model="reason" class="form-input" rows="4"></textarea></div><div class="modal-footer"><button class="btn btn-secondary" @click="statusModal=false">لغو</button><button class="btn btn-primary" :disabled="saving||!nextStatus||!reason.trim()" @click="saveStatus">ثبت رویداد</button></div></div></div>
+
+    <div v-if="canManage&&priorityModal" class="modal-overlay" @click.self="priorityModal=false"><div class="modal small-modal"><div class="modal-header"><h3>اولویت تخصیص {{ current.fullName }}</h3><button class="modal-close" @click="priorityModal=false"><i class="ri-close-line"></i></button></div><div class="form-group"><label class="form-label">فوریت پزشکی (۰ تا ۱۰۰)</label><input v-model.number="priority.medical_urgency" type="number" min="0" max="100" class="form-input"></div><div class="form-group"><label class="form-label">ضریب منطقه محروم (۰ تا ۱۰۰)</label><input v-model.number="priority.regional_disadvantage" type="number" min="0" max="100" class="form-input"></div><div class="form-group"><label class="form-label">تاریخ ورود به لیست (میلادی)</label><input v-model="priority.waiting_since" type="date" class="form-input"></div><label class="check-chip" :class="{checked:priority.is_emergency}"><input v-model="priority.is_emergency" type="checkbox"> شرایط اورژانسی مستند</label><div v-if="priority.is_emergency" class="form-group"><label class="form-label">شرح شرایط اورژانسی *</label><textarea v-model="priority.emergency_reason" class="form-input" rows="3"></textarea></div><div class="modal-footer"><button class="btn btn-secondary" @click="priorityModal=false">لغو</button><button class="btn btn-primary" :disabled="saving||(priority.is_emergency&&!priority.emergency_reason.trim())" @click="savePriority">ذخیره اولویت</button></div></div></div>
   </div>
 </template>
 
 <script setup>
+import { computed, onMounted, ref } from 'vue'
+import { registryApi } from '../services/api'
+import { useAuth } from '../composables/useAuth'
+import PaginationControls from '../components/PaginationControls.vue'
+
+const statusLabels={registered:'ثبت‌نام اولیه',pending_documents:'در انتظار تأیید مدارک',rejected:'رد شده',active:'فعال در لیست انتظار',match_candidate:'کاندیدای تطبیق',awaiting_crossmatch:'در انتظار Cross-Match',awaiting_high_resolution:'در انتظار High-Resolution',ready:'آماده پیوند',transplanted:'پیوند انجام شد',follow_up:'پیگیری پس از پیوند',temporarily_inactive:'غیرفعال موقت',removed:'حذف از لیست انتظار'}
+const {authState}=useAuth();const canManage=computed(()=>authState.user?.can_manage_clinical_workflow===true)
+const recipients=ref([]);const loading=ref(false);const saving=ref(false);const error=ref('');const search=ref('');const statusFilter=ref('');const statusModal=ref(false);const priorityModal=ref(false);const current=ref(null);const nextStatus=ref('');const reason=ref('');const priority=ref({});const pagination=ref({page:1,pages:1,count:0,has_next:false,has_previous:false})
+const filtered=computed(()=>recipients.value)
+const count=status=>recipients.value.filter(i=>i.status===status).length
+const matchingCount=computed(()=>recipients.value.filter(i=>['match_candidate','awaiting_crossmatch','awaiting_high_resolution','ready'].includes(i.status)).length)
+const inactiveCount=computed(()=>recipients.value.filter(i=>['temporarily_inactive','removed','rejected'].includes(i.status)).length)
+const load=async(page=pagination.value.page||1)=>{loading.value=true;error.value='';try{const response=await registryApi.listRecipients({page,page_size:25,search:search.value,status:statusFilter.value});recipients.value=response.recipients;pagination.value=response.pagination}catch(e){error.value=e.message}finally{loading.value=false}}
+const openStatus=item=>{current.value=item;nextStatus.value='';reason.value='';statusModal.value=true}
+const openPriority=item=>{current.value=item;priority.value={medical_urgency:item.medicalUrgency,regional_disadvantage:item.regionalDisadvantage,waiting_since:item.waitingSince||'',is_emergency:Boolean(item.isEmergency),emergency_reason:item.emergencyReason||''};priorityModal.value=true}
+const replace=item=>{const index=recipients.value.findIndex(row=>row._id===item._id);if(index>=0)recipients.value[index]=item}
+const saveStatus=async()=>{saving.value=true;error.value='';try{const response=await registryApi.updateRecipientStatus(current.value._id,nextStatus.value,reason.value);replace(response.recipient);statusModal.value=false;window.toast.add({severity:'success',summary:'وضعیت',detail:response.message})}catch(e){error.value=e.message}finally{saving.value=false}}
+const addToWaiting=async item=>{current.value=item;nextStatus.value='active';reason.value='افزودن گیرنده واجد شرایط به لیست انتظار';await saveStatus()}
+const leaveWaiting=async item=>{current.value=item;nextStatus.value='temporarily_inactive';reason.value='خروج موقت گیرنده از لیست انتظار';await saveStatus()}
+const savePriority=async()=>{saving.value=true;error.value='';try{const response=await registryApi.updateRecipientPriority(current.value._id,priority.value);replace(response.recipient);priorityModal.value=false;window.toast.add({severity:'success',summary:'اولویت',detail:response.message})}catch(e){error.value=e.message}finally{saving.value=false}}
+onMounted(load)
 </script>
+
+<style scoped>
+.emergency-mark{display:block;color:#b91c1c;font-weight:800;margin-top:4px}
+.page-header,.filters,.row-actions{display:flex;align-items:center;justify-content:space-between;gap:14px}.page-header{align-items:flex-start;margin-bottom:20px}.page-title{font-size:23px;font-weight:900}.page-subtitle{color:var(--text-2);font-size:13px}.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}.summary-card,.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;box-shadow:var(--shadow-1)}.summary-card{border-top:3px solid var(--text-3)}.summary-card.active{border-top-color:var(--success-500)}.summary-card.candidate{border-top-color:var(--brand-500)}.summary-card.inactive{border-top-color:var(--warning-500)}.summary-card span{display:block;color:var(--text-2)}.summary-card strong{font-size:24px}.filters{justify-content:flex-start;margin-bottom:14px}.filters .form-group{margin:0;min-width:240px}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;white-space:nowrap}th,td{padding:11px;border-bottom:1px solid var(--border);text-align:right}th{font-size:12px;color:var(--text-2);background:var(--surface-muted)}td>small{display:block;color:var(--text-3)}.status{padding:4px 8px;border-radius:999px;background:var(--surface-muted);font-size:11px;font-weight:800}.status.active{background:#ecfdf5;color:var(--success-700)}.status.awaiting_crossmatch,.status.match_candidate,.status.ready{background:#eff6ff;color:var(--info-700)}.status.awaiting_high_resolution{background:#fffbeb;color:var(--warning-700)}.status.removed,.status.rejected{background:#fef2f2;color:var(--error-700)}.meter{display:inline-block;width:55px;height:6px;background:var(--border);border-radius:5px;margin-left:6px;overflow:hidden}.meter i{display:block;height:100%;background:var(--color-primary)}.row-actions{justify-content:flex-start;gap:5px}.icon-action{width:31px;height:31px;border:1px solid var(--border);border-radius:8px;background:var(--surface);cursor:pointer;color:var(--text-2)}.icon-action:hover{border-color:var(--color-primary);color:var(--color-primary)}.small-modal{max-width:520px}.current-state{padding:10px;background:var(--surface-muted);border-radius:var(--radius-md);margin-bottom:14px}.empty-state{text-align:center;padding:35px;color:var(--text-2)}.empty-state i{display:block;font-size:38px;color:var(--text-3)}.spin{animation:spin 1s linear infinite}@media(max-width:850px){.summary-grid{grid-template-columns:repeat(2,1fr)}.filters{flex-direction:column;align-items:stretch}.filters .form-group{min-width:0}}
+</style>

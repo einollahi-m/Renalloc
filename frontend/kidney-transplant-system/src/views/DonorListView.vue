@@ -72,15 +72,20 @@
             <td><span class="badge" :class="d.donorType==='living_related'?'badge-success':d.donorType==='living_unrelated'?'badge-info':'badge-warning'">{{ d.donorType==='living_related'?'زنده خویشاوند':d.donorType==='living_unrelated'?'زنده غیرخویشاوند':'فوت شده' }}</span></td>
             <td><span class="badge badge-info">{{ d.bloodType }}{{ d.rhFactor === 'positive' ? '+' : '-' }}</span></td>
             <td>{{ d.relationship || '—' }}</td>
-            <td><span class="badge badge-success"><i class="ri-check-line"></i> در دسترس</span></td>
+            <td><span class="badge" :class="d.status==='available'?'badge-success':'badge-secondary'"><i :class="d.status==='available'?'ri-check-line':'ri-pause-line'"></i> {{ d.status === 'available' ? 'در دسترس' : 'غیرفعال' }}</span></td>
             <td @click.stop>
               <div class="flex gap-1">
                 <button class="icon-btn" title="مشاهده" @click="$router.push('/donors/'+d._id)"><i class="ri-eye-line"></i></button>
-                <button class="icon-btn" title="ویرایش"><i class="ri-edit-line"></i></button>
               </div>
             </td>
           </tr>
-          <tr v-if="!filtered.length">
+          <tr v-if="loading">
+            <td colspan="6"><div class="empty-state" style="border:none;background:transparent;"><i class="ri-loader-4-line"></i><h3>در حال دریافت اهداکنندگان…</h3></div></td>
+          </tr>
+          <tr v-else-if="loadError">
+            <td colspan="6"><div class="empty-state" style="border:none;background:transparent;"><i class="ri-error-warning-line"></i><h3>{{ loadError }}</h3><button class="btn btn-secondary mt-3" @click="loadDonors">تلاش دوباره</button></div></td>
+          </tr>
+          <tr v-else-if="!filtered.length">
             <td colspan="6">
               <div class="empty-state" style="border:none; background:transparent;">
                 <i class="ri-search-eye-line"></i>
@@ -91,56 +96,62 @@
           </tr>
         </tbody>
       </table>
+      <pagination-controls :pagination="pagination" @change="changePage" />
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { toFaDigits } from '../utils/date'
+import { registryApi } from '../services/api'
+import PaginationControls from '../components/PaginationControls.vue'
 
-const router = useRouter()
 const search = ref('')
 const showFilters = ref(false)
 const filters = reactive({ donorType: '', bloodType: '' })
 const toFa = toFaDigits
 
-// Mock data for donors
-const mockDonors = [
-  { _id: 'd1', fullName: 'محمد رضایی', nationalId: '6666666666', birthDate: '1990-08-25', gender: 'male', bloodType: 'A', rhFactor: 'positive', donorType: 'living_related', status: 'available', relationship: 'برادر' },
-  { _id: 'd2', fullName: 'فاطمه نوری', nationalId: '7777777777', birthDate: '1985-12-10', gender: 'female', bloodType: 'O', rhFactor: 'positive', donorType: 'living_unrelated', status: 'available', relationship: 'همسر' },
-  { _id: 'd3', fullName: 'احمد موسوی', nationalId: '8888888888', birthDate: '1978-04-18', gender: 'male', bloodType: 'B', rhFactor: 'positive', donorType: 'living_related', status: 'available', relationship: 'پدر' },
-  { _id: 'd4', fullName: 'سعید جعفری', nationalId: '9999999999', birthDate: '1988-09-05', gender: 'male', bloodType: 'O', rhFactor: 'negative', donorType: 'living_related', status: 'available', relationship: 'برادر' },
-  { _id: 'd5', fullName: 'مرحوم کاظمی', nationalId: '0000000000', birthDate: '1975-02-28', gender: 'male', bloodType: 'A', rhFactor: 'positive', donorType: 'deceased', status: 'available', relationship: null }
-]
+const donors = ref([])
+const loading = ref(true)
+const loadError = ref('')
+const pagination = ref({page:1,pages:1,count:0,has_next:false,has_previous:false})
 
-const filtered = computed(() => {
-  return mockDonors.filter(d => {
-    if (search.value && !d.fullName.includes(search.value) && !d.nationalId.includes(search.value)) return false
-    if (filters.donorType && d.donorType !== filters.donorType) return false
-    if (filters.bloodType && d.bloodType !== filters.bloodType) return false
-    return true
-  })
-})
+const filtered = computed(() => donors.value)
 
 const activeFilterCount = computed(() => Object.values(filters).filter(v => v !== '').length)
 
 const doSearch = () => {
-  const event = new CustomEvent('toast', { 
-    detail: { severity: 'info', summary: 'جستجو', detail: `${toFa(filtered.value.length)} نتیجه یافت شد` } 
-  })
-  window.dispatchEvent(event)
+  loadDonors(1)
 }
 
 const clearFilters = () => { 
   filters.donorType = ''
   filters.bloodType = '' 
+  search.value = ''
+  loadDonors(1)
 }
+
+const loadDonors = async (page = pagination.value.page || 1) => {
+  loading.value = true
+  loadError.value = ''
+  try {
+    const response = await registryApi.listDonors({page,page_size:25,search:search.value,donor_type:filters.donorType,blood_type:filters.bloodType})
+    donors.value = response.donors || []
+    pagination.value = response.pagination || pagination.value
+  } catch (error) {
+    loadError.value = error?.message || 'دریافت فهرست اهداکنندگان انجام نشد'
+  } finally {
+    loading.value = false
+  }
+}
+const changePage=page=>loadDonors(page)
+
+onMounted(loadDonors)
 
 const calculateAge = (birthDate) => {
   if (!birthDate) return '—'
-  return new Date().getFullYear() - new Date(birthDate).getFullYear()
+  return toFa(new Date().getFullYear() - new Date(birthDate).getFullYear())
 }
 </script>
 

@@ -4,7 +4,7 @@ export const hlaOptions = {
   hlaC: ['C*01','C*02','C*03','C*04','C*05','C*06','C*07','C*08','C*12','C*14','C*15','C*16','C*17','C*18'].map(v => ({label:v,value:v})),
   hlaDRB1: ['DRB1*01','DRB1*03','DRB1*04','DRB1*07','DRB1*08','DRB1*09','DRB1*10','DRB1*11','DRB1*12','DRB1*13','DRB1*14','DRB1*15','DRB1*16'].map(v => ({label:v,value:v})),
   hlaDQB1: ['DQB1*02','DQB1*03','DQB1*04','DQB1*05','DQB1*06'].map(v => ({label:v,value:v})),
-  hlaDRB: ['DRB3','DRB4','DRB5'].map(v => ({label:v,value:v}))
+  hlaDRB: ['DRB3','DRB4','DRB5', 'سایر'].map(v => ({label:v,value:v}))
 }
 
 export const antiHlaAOptions = ['A*01:01','A*02:01','A*02:02','A*02:03','A*02:05','A*03:01','A*11:01','A*11:02','A*23:01','A*24:02','A*24:03','A*25:01','A*26:01','A*29:01','A*29:02','A*30:01','A*31:01','A*32:01','A*33:01','A*33:03','A*34:02','A*36:01','A*43:01','A*66:01','A*66:02','A*68:01','A*68:02','A*69:01','A*74:01','A*80:01'].map(v => ({label:v,value:v}))
@@ -24,3 +24,14 @@ export const antiHlaDQA1Options = ['DQA1*01:01','DQA1*01:02','DQA1*01:03','DQA1*
 export const antiHlaDPB1Options = ['DPB1*01:01','DPB1*02:01','DPB1*03:01','DPB1*04:01','DPB1*04:02','DPB1*05:01','DPB1*06:01','DPB1*09:01','DPB1*11:01','DPB1*13:01','DPB1*14:01','DPB1*15:01','DPB1*17:01','DPB1*18:01','DPB1*19:01','DPB1*28:01'].map(v => ({label:v,value:v}))
 
 export const antiHlaDPA1Options = ['DPA1*01:03','DPA1*02:01','DPA1*02:02','DPA1*03:01','DPA1*04:01'].map(v => ({label:v,value:v}))
+
+// پس از درخواست High-Resolution همان فرم تایپ HLA باید آلل‌های تفصیلی را بپذیرد.
+hlaOptions.hlaA.push(...antiHlaAOptions)
+hlaOptions.hlaB.push(...antiHlaBOptions)
+hlaOptions.hlaC.push(...antiHlaCOptions)
+hlaOptions.hlaDRB1.push(...antiHlaDRB1Options)
+hlaOptions.hlaDQB1.push(...antiHlaDQB1Options)
+hlaOptions.hlaDRB.push(...antiHlaDRB345Options)
+hlaOptions.hlaDQA1 = [...antiHlaDQA1Options]
+hlaOptions.hlaDPB1 = [...antiHlaDPB1Options]
+hlaOptions.hlaDPA1 = [...antiHlaDPA1Options]

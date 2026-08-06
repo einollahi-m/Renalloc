@@ -129,7 +129,7 @@ export const getCurrentDate = () => {
   const now = new Date()
   const j = gregorianToJalali(now.getFullYear(), now.getMonth() + 1, now.getDate())
   return {
-    gregorian: `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`,
+    gregorian: toFaDigits(`${now.getFullYear()}/${pad2(now.getMonth() + 1)}/${pad2(now.getDate())}`),
     jalali: `${WEEKDAYS_FA[now.getDay()]} ${toFaDigits(j.jy)}/${toFaDigits(j.jm)}/${toFaDigits(j.jd)}`
   }
 }

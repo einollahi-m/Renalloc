@@ -18,5 +18,64 @@ services:
       timeout: 5s
       retries: 10
 
+  redis:
+    image: redis:7.4-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory-policy", "noeviction"]
+    ports:
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
+    volumes:
+      - renalloc_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  matching-worker:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.backend
+    restart: unless-stopped
+    command: ["celery", "-A", "config", "worker", "-l", "INFO", "-Q", "matching,maintenance", "--concurrency", "${CELERY_CONCURRENCY:-2}"]
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-renalloc}
+      POSTGRES_USER: ${POSTGRES_USER:-renalloc}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-renalloc}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-unsafe-compose-development-key}
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-true}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  matching-beat:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.backend
+    restart: unless-stopped
+    command: ["celery", "-A", "config", "beat", "-l", "INFO"]
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-renalloc}
+      POSTGRES_USER: ${POSTGRES_USER:-renalloc}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-renalloc}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-unsafe-compose-development-key}
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-true}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
 volumes:
   renalloc_postgres_data:
+  renalloc_redis_data:

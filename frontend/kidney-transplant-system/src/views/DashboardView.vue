@@ -1,43 +1,34 @@
 <template>
   <div>
-    <div class="page-header">
-      <div>
-        <div class="page-title">داشبورد</div>
-        <div class="page-subtitle">نمای کلی سامانه</div>
-      </div>
+    <div class="page-header"><div><div class="page-title">داشبورد Matching</div><div class="page-subtitle">شاخص‌های عملیاتی مرکز و گزارش تجمیعی ملی</div></div><button class="btn btn-secondary" @click="load"><i class="ri-refresh-line"></i> به‌روزرسانی</button></div>
+    <div v-if="error" class="alert alert-danger"><i class="ri-error-warning-line"></i>{{ error }}</div>
+    <div class="kpi-grid">
+      <div class="kpi"><i class="ri-user-heart-line"></i><div><span>گیرندگان فعال</span><strong>{{ activeRecipients }}</strong></div></div>
+      <div class="kpi donor"><i class="ri-hand-heart-line"></i><div><span>اهداکنندگان در دسترس</span><strong>{{ availableDonors }}</strong></div></div>
+      <div class="kpi match"><i class="ri-exchange-2-line"></i><div><span>پیشنهادهای باز</span><strong>{{ openProposals }}</strong></div></div>
+      <div class="kpi cross"><i class="ri-test-tube-line"></i><div><span>Cross-Match جاری</span><strong>{{ openCrossmatches }}</strong></div></div>
     </div>
-    <div class="card">
-      <div class="empty-state">
-        <i class="ri-dashboard-2-line"></i>
-        <h3>داشبورد در حال طراحی است</h3>
-        <p>شاخص‌ها، نمودارها و گزارش‌های این بخش پس از تعیین نیازمندی‌ها و داده‌های نهایی اضافه خواهند شد.</p>
-      </div>
+    <div class="dashboard-grid">
+      <section class="card"><div class="section-head"><div><h3>آخرین پیشنهادها</h3><p>قابل پیگیری تا تصمیم مرکز</p></div><button class="text-button" @click="$router.push('/matching')">مشاهده همه</button></div><div v-if="!proposals.length" class="empty">پیشنهادی ثبت نشده است.</div><div v-for="item in proposals.slice(0,6)" :key="item.id" class="activity"><span class="rank">{{ item.rank || '—' }}</span><div><strong>{{ item.recipient.fullName }}</strong><small>اهداکننده: {{ item.donor.fullName }}</small></div><span class="status" :class="item.compatibility">{{ item.compatibility_display }}</span></div></section>
+      <section class="card"><div class="section-head"><div><h3>وضعیت Cross-Match</h3><p>نمای زنده گردش‌کار بالینی</p></div><button class="text-button" @click="$router.push('/matching/virtual-crossmatch')">مدیریت</button></div><div class="status-chart"><div v-for="row in crossStatusRows" :key="row.key"><span>{{ row.label }}</span><span class="bar"><i :style="{width:`${row.percent}%`}"></i></span><strong>{{ row.count }}</strong></div></div></section>
     </div>
+    <section v-if="national" class="card national-card"><div class="section-head"><div><h3>گزارش ملی</h3><p>فقط برای مدیران ملی</p></div><span class="badge badge-info">Run: {{ national.latest_run?.status || '—' }}</span></div><div class="national-grid"><div><span>کل گیرندگان</span><strong>{{ sum(national.recipients_by_status) }}</strong></div><div><span>کل اهداکنندگان</span><strong>{{ sum(national.donors_by_status) }}</strong></div><div><span>کل تطبیق‌ها</span><strong>{{ sum(national.matches_by_compatibility) }}</strong></div><div><span>Cross-Match منفی</span><strong>{{ national.crossmatches_by_status?.negative || 0 }}</strong></div></div></section>
   </div>
 </template>
 
 <script setup>
+import { computed, onMounted, ref } from 'vue'
+import { registryApi } from '../services/api'
+import { useAuth } from '../composables/useAuth'
+const {authState}=useAuth();const recipients=ref([]);const donors=ref([]);const proposals=ref([]);const crossmatches=ref([]);const national=ref(null);const error=ref('')
+const activeRecipients=computed(()=>recipients.value.filter(i=>i.status==='active').length);const availableDonors=computed(()=>donors.value.filter(i=>['available','reserved'].includes(i.status)).length);const openProposals=computed(()=>proposals.value.filter(i=>i.decision==='proposed').length);const openCrossmatches=computed(()=>crossmatches.value.filter(i=>!['negative','positive','cancelled'].includes(i.status)).length)
+const labels={consultation_requested:'مشاوره',center_review:'بررسی مرکز',scheduled:'برنامه‌ریزی',negative:'منفی',positive:'مثبت',cancelled:'لغو'}
+const crossStatusRows=computed(()=>Object.entries(labels).map(([key,label])=>{const count=crossmatches.value.filter(i=>i.status===key).length;return{key,label,count,percent:crossmatches.value.length?Math.max(3,count/crossmatches.value.length*100):0}}))
+const sum=obj=>Object.values(obj||{}).reduce((a,b)=>a+b,0)
+const load=async()=>{error.value='';try{const [r,d,p,c]=await Promise.all([registryApi.listRecipients({page_size:100}),registryApi.listDonors({page_size:100}),registryApi.listMatchProposals(),registryApi.listCrossmatches()]);recipients.value=r.recipients;donors.value=d.donors;proposals.value=p.proposals;crossmatches.value=c.crossmatches;if(authState.user?.is_staff)national.value=await registryApi.getNationalReport()}catch(e){error.value=e.message}}
+onMounted(load)
 </script>
 
 <style scoped>
-.page-header {
-  display: flex; justify-content: space-between; align-items: flex-start;
-  margin-bottom: 22px; gap: 16px;
-}
-.page-title { font-size: 23px; font-weight: 900; margin-bottom: 3px; }
-.page-subtitle { color: var(--text-2); font-size: 13px; }
-.card {
-  background: var(--surface); border-radius: var(--radius-lg);
-  border: 1px solid var(--border); padding: 20px;
-  box-shadow: var(--shadow-1); transition: all .2s;
-}
-.empty-state {
-  padding: 46px 20px; text-align: center;
-  border: 2px dashed var(--border-strong); border-radius: var(--radius-lg);
-  background: var(--surface-muted); transition: border-color .2s;
-}
-.empty-state:hover { border-color: var(--color-primary-light); }
-.empty-state i { font-size: 44px; color: var(--text-3); margin-bottom: 12px; display: block; }
-.empty-state h3 { font-size: 15.5px; margin-bottom: 5px; font-weight: 800; }
-.empty-state p { font-size: 13px; color: var(--text-2); margin: 0; max-width: 420px; margin-inline: auto; }
+.page-header,.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.page-header{align-items:flex-start;margin-bottom:20px}.page-title{font-size:23px;font-weight:900}.page-subtitle,.section-head p{color:var(--text-2);font-size:13px;margin:2px 0}.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}.kpi,.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;box-shadow:var(--shadow-1)}.kpi{display:flex;align-items:center;gap:12px}.kpi>i{width:44px;height:44px;display:grid;place-items:center;border-radius:12px;background:var(--color-primary-soft);color:var(--color-primary);font-size:23px}.kpi.donor>i{background:#ecfdf5;color:var(--success-700)}.kpi.match>i{background:#eff6ff;color:var(--info-700)}.kpi.cross>i{background:#fffbeb;color:var(--warning-700)}.kpi span{display:block;color:var(--text-2);font-size:12px}.kpi strong{font-size:23px}.dashboard-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}.section-head{margin-bottom:13px}.section-head h3{margin:0}.text-button{border:0;background:none;color:var(--color-primary);font-family:inherit;cursor:pointer}.activity{display:grid;grid-template-columns:32px 1fr auto;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)}.rank{width:30px;height:30px;display:grid;place-items:center;border-radius:50%;background:var(--surface-muted);font-weight:800}.activity div{display:flex;flex-direction:column}.activity small{color:var(--text-3)}.status{padding:4px 8px;border-radius:999px;font-size:11px;font-weight:800}.status.compatible{background:#ecfdf5;color:var(--success-700)}.status.conditional{background:#fffbeb;color:var(--warning-700)}.status-chart{display:grid;gap:10px}.status-chart>div{display:grid;grid-template-columns:100px 1fr 25px;gap:8px;align-items:center}.bar{height:8px;background:var(--surface-muted);border-radius:5px;overflow:hidden}.bar i{display:block;height:100%;background:var(--grad-brand)}.national-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.national-grid div{padding:12px;border-radius:var(--radius-md);background:var(--surface-muted)}.national-grid span{display:block;color:var(--text-2)}.national-grid strong{font-size:21px}.empty{text-align:center;padding:30px;color:var(--text-3)}@media(max-width:900px){.kpi-grid,.national-grid{grid-template-columns:repeat(2,1fr)}.dashboard-grid{grid-template-columns:1fr}}@media(max-width:550px){.kpi-grid,.national-grid{grid-template-columns:1fr}}
 </style>

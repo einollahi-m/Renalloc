@@ -15,7 +15,7 @@ export const insuranceOptions = [
 
 export const nationalityOptions = ['افغانستان','عراق','ترکمنستان','پاکستان','عمان','بحرین','آذربایجان','ارمنستان','تاجیکستان','کویت','هندوستان','ترکیه','سایر']
 
-export const bloodTypeOptions = ['A','B','AB','O']
+export const bloodGroupOptions = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
 
 export const dialysisTypes = [{ label: 'همودیالیز', value: 'hemodialysis' }, { label: 'دیالیز صفاقی', value: 'peritoneal' }]
 

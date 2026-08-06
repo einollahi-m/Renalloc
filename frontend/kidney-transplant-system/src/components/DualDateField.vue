@@ -1,18 +1,37 @@
 <template>
   <div class="dp" :class="{open}" v-click-outside="close">
     <label class="form-label" v-if="label">{{ label }}</label>
-    <div class="dp-mode">
-      <button type="button" class="dp-mode-btn" :class="{active: mode==='jalali'}" @click="setMode('jalali')">شمسی (جلالی)</button>
-      <button type="button" class="dp-mode-btn" :class="{active: mode==='gregorian'}" @click="setMode('gregorian')">میلادی</button>
+    <div class="dp-input-row">
+      <div class="dp-mode">
+        <button type="button" class="dp-mode-btn" :class="{active: mode==='jalali'}" @click="setMode('jalali')">شمسی (جلالی)</button>
+        <button type="button" class="dp-mode-btn" :class="{active: mode==='gregorian'}" @click="setMode('gregorian')">میلادی</button>
+      </div>
+      <div class="dp-field" :class="{'has-error':inputError}" @keydown.esc="open=false">
+        <button type="button" class="dp-calendar-trigger" @click="togglePanel" title="انتخاب از تقویم" aria-label="انتخاب از تقویم">
+          <i class="ri-calendar-2-line dp-field-icon"></i>
+        </button>
+        <input
+          class="dp-display"
+          :value="typedValue"
+          :aria-invalid="Boolean(inputError)"
+          placeholder="انتخاب یا ورود تاریخ"
+          inputmode="numeric"
+          maxlength="10"
+          autocomplete="off"
+          @focus="editing=true"
+          @input="onTextInput"
+          @blur="commitTypedDate"
+          @keydown.enter.prevent="commitTypedDate"
+        />
+        <button v-if="modelValue" type="button" class="dp-clear" @click.stop="clear" title="پاک کردن"><i class="ri-close-circle-line"></i></button>
+        <button type="button" class="dp-caret-button" @click="togglePanel" :aria-expanded="open" aria-label="باز کردن تقویم">
+          <i class="ri-arrow-down-s-line dp-caret" :class="{rotated: open}"></i>
+        </button>
+      </div>
     </div>
-    <div class="dp-field" @click="togglePanel" tabindex="0" @keydown.enter.prevent="togglePanel" @keydown.esc="open=false">
-      <i class="ri-calendar-2-line dp-field-icon"></i>
-      <input class="dp-display" :value="displayValue" readonly placeholder="تاریخ" :dir="mode==='jalali' ? 'rtl' : 'ltr'" />
-      <button v-if="modelValue" type="button" class="dp-clear" @click.stop="clear" title="پاک کردن"><i class="ri-close-circle-line"></i></button>
-      <i class="ri-arrow-down-s-line dp-caret" :class="{rotated: open}"></i>
-    </div>
+    <div v-if="inputError" class="dp-error"><i class="ri-close-circle-line"></i>{{ inputError }}</div>
     <div class="dp-equiv" v-if="modelValue">
-      <span v-if="mode==='jalali'">معادل میلادی: <b dir="ltr">{{ modelValue }}</b></span>
+      <span v-if="mode==='jalali'">معادل میلادی: <b>{{ gregorianDisplay }}</b></span>
       <span v-else>معادل شمسی: <b>{{ jalaliDisplay }}</b></span>
     </div>
     <transition name="dp-pop">
@@ -23,7 +42,7 @@
             <option v-for="(m,i) in monthNames" :key="i" :value="i+1">{{ m }}</option>
           </select>
           <select class="dp-select" v-model="viewY">
-            <option v-for="y in yearRange" :key="y" :value="y">{{ mode==='jalali' ? toFa(y) : y }}</option>
+            <option v-for="y in yearRange" :key="y" :value="y">{{ toFa(y) }}</option>
           </select>
           <button type="button" class="dp-nav-btn" @click="nextMonth" title="ماه بعد"><i class="ri-arrow-left-s-line"></i></button>
         </div>
@@ -45,8 +64,8 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { gregorianToJalali, jalaliToGregorian, JALALI_MONTHS, GREGORIAN_MONTHS_FA, WEEKDAY_LETTERS, toFaDigits, pad2 } from '../utils/date'
+import { ref, computed, watch } from 'vue'
+import { gregorianToJalali, jalaliToGregorian, jMonthLength, JALALI_MONTHS, GREGORIAN_MONTHS_FA, WEEKDAY_LETTERS, toFaDigits, pad2 } from '../utils/date'
 
 const props = defineProps({
   modelValue: { type: String, default: '' },
@@ -58,6 +77,9 @@ const mode = ref('jalali')
 const open = ref(false)
 const viewY = ref(1405)
 const viewM = ref(5)
+const typedValue = ref('')
+const editing = ref(false)
+const inputError = ref('')
 const toFa = toFaDigits
 
 const isoOf = (gy, gm, gd) => `${gy}-${pad2(gm)}-${pad2(gd)}`
@@ -67,10 +89,23 @@ const jalaliDisplay = computed(() => {
   if (!props.modelValue || !/^\d{4}-\d{2}-\d{2}$/.test(props.modelValue)) return ''
   const [gy, gm, gd] = props.modelValue.split('-').map(Number)
   const j = gregorianToJalali(gy, gm, gd)
-  return `${toFa(j.jy)}/${toFa(j.jm)}/${toFa(j.jd)}`
+  return `${toFa(j.jy)}/${toFa(pad2(j.jm))}/${toFa(pad2(j.jd))}`
 })
 
-const displayValue = computed(() => mode.value === 'jalali' ? jalaliDisplay.value : (props.modelValue || ''))
+const gregorianDisplay = computed(() => props.modelValue
+  ? toFa(props.modelValue.replaceAll('-', '/'))
+  : '')
+const displayValue = computed(() => mode.value === 'jalali' ? jalaliDisplay.value : gregorianDisplay.value)
+
+watch(() => props.modelValue, () => {
+  if (!editing.value) typedValue.value = displayValue.value
+}, { immediate: true })
+
+watch(mode, () => {
+  editing.value = false
+  inputError.value = ''
+  typedValue.value = displayValue.value
+})
 
 function syncView() {
   const base = (props.modelValue && /^\d{4}-\d{2}-\d{2}$/.test(props.modelValue)) ? props.modelValue : todayIso()
@@ -86,6 +121,68 @@ function syncView() {
 function togglePanel() { if (open.value) { open.value = false } else { syncView(); open.value = true } }
 function close() { open.value = false }
 function setMode(m) { mode.value = m; if (open.value) syncView() }
+
+function normalizeTypedDate(value) {
+  const digits = String(value || '')
+    .replace(/[۰-۹]/g, digit => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(digit)))
+    .replace(/[٠-٩]/g, digit => String('٠١٢٣٤٥٦٧٨٩'.indexOf(digit)))
+    .replace(/\D/g, '')
+    .slice(0, 8)
+  if (digits.length <= 4) return digits
+  if (digits.length <= 6) return `${digits.slice(0, 4)}/${digits.slice(4)}`
+  return `${digits.slice(0, 4)}/${digits.slice(4, 6)}/${digits.slice(6)}`
+}
+
+function onTextInput(event) {
+  editing.value = true
+  inputError.value = ''
+  typedValue.value = toFa(normalizeTypedDate(event.target.value))
+}
+
+function commitTypedDate() {
+  const normalized = normalizeTypedDate(typedValue.value)
+  if (!normalized) {
+    editing.value = false
+    inputError.value = ''
+    emit('update:modelValue', '')
+    return true
+  }
+  const match = /^(\d{4})\/(\d{2})\/(\d{2})$/.exec(normalized)
+  if (!match) {
+    inputError.value = 'تاریخ را به شکل سال/ماه/روز وارد کنید'
+    return false
+  }
+  const [, yearText, monthText, dayText] = match
+  const year = Number(yearText)
+  const month = Number(monthText)
+  const day = Number(dayText)
+  let iso = ''
+  if (mode.value === 'jalali') {
+    let validJalali = year >= 1300 && year <= 1500 && month >= 1 && month <= 12 && day >= 1
+    if (validJalali) {
+      try { validJalali = day <= jMonthLength(year, month) } catch { validJalali = false }
+    }
+    if (!validJalali) {
+      inputError.value = 'تاریخ شمسی معتبر نیست'
+      return false
+    }
+    const converted = jalaliToGregorian(year, month, day)
+    iso = isoOf(converted.gy, converted.gm, converted.gd)
+  } else {
+    const date = new Date(year, month - 1, day)
+    const validGregorian = year >= 1900 && year <= 2100 && month >= 1 && month <= 12 && day >= 1 &&
+      date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day
+    if (!validGregorian) {
+      inputError.value = 'تاریخ میلادی معتبر نیست'
+      return false
+    }
+    iso = isoOf(year, month, day)
+  }
+  editing.value = false
+  inputError.value = ''
+  emit('update:modelValue', iso)
+  return true
+}
 
 const cells = computed(() => {
   const out = []
@@ -109,7 +206,7 @@ const cells = computed(() => {
       label = toFa(j.jd)
     } else {
       inMonth = (gm === viewM.value)
-      label = String(gd)
+      label = toFa(gd)
     }
     out.push({ iso, label, inMonth, isToday: iso === tIso })
   }
@@ -125,41 +222,48 @@ const yearRange = computed(() => {
 })
 const weekdays = WEEKDAY_LETTERS
 
-function pick(c) { emit('update:modelValue', c.iso); open.value = false }
-function pickToday() { emit('update:modelValue', todayIso()); open.value = false }
-function clear() { emit('update:modelValue', '') }
+function pick(c) { editing.value = false; inputError.value = ''; emit('update:modelValue', c.iso); open.value = false }
+function pickToday() { editing.value = false; inputError.value = ''; emit('update:modelValue', todayIso()); open.value = false }
+function clear() { editing.value = false; inputError.value = ''; typedValue.value = ''; emit('update:modelValue', '') }
 function prevMonth() { if (viewM.value === 1) { viewM.value = 12; viewY.value-- } else viewM.value-- }
 function nextMonth() { if (viewM.value === 12) { viewM.value = 1; viewY.value++ } else viewM.value++ }
 </script>
 
 <style scoped>
-.dp { position: relative; width: 100%; max-width: 220px; }
-.dp-mode { display: inline-flex; background: var(--surface-muted); border-radius: 9px; padding: 3px; gap: 2px; margin-bottom: 8px; }
+.dp { position: relative; width: 100%; }
+.dp-input-row { display: grid; grid-template-columns: auto minmax(180px, 1fr); align-items: center; gap: 10px; }
+.dp-mode { display: inline-flex; background: var(--surface-muted); border-radius: 9px; padding: 3px; gap: 2px; }
 .dp-mode-btn {
   border: none; background: transparent; padding: 5px 18px; border-radius: 7px;
-  font-family: inherit; font-size: 12px; font-weight: 600; color: var(--text-2);
+  font-family: inherit; font-size: 13px; font-weight: 700; color: var(--text-2);
   cursor: pointer; transition: all .2s;
 }
 .dp-mode-btn.active { background: var(--color-primary); color: #fff; box-shadow: 0 2px 6px rgba(14,165,233,.35); }
 .dp-field {
   display: flex; align-items: center; gap: 8px;
   border: 2px solid var(--border); border-radius: var(--radius-md);
-  padding: 9px 12px; background: var(--surface); cursor: pointer; transition: all .2s;
+  min-height: 48px; padding: 7px 12px; background: var(--surface); transition: all .2s;
 }
 .dp-field:hover { border-color: var(--color-primary-light); }
 .dp.open .dp-field { border-color: var(--color-primary); box-shadow: 0 0 0 4px rgba(14,165,233,.12); }
+.dp-field.has-error { border-color: var(--color-error); }
+.dp-calendar-trigger, .dp-caret-button {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 0; border: 0; background: transparent; color: inherit; cursor: pointer;
+}
 .dp-field-icon { color: var(--color-primary); font-size: 18px; }
 .dp-display {
   flex: 1; min-width: 0; border: none; background: transparent; outline: none;
-  text-align: center; font-family: inherit; font-size: 14px; font-weight: 700;
-  color: var(--text-1); cursor: pointer;
+  text-align: center; font-family: inherit; font-size: 15px; font-weight: 700;
+  color: var(--text-1); line-height: 1.8;
 }
-.dp-display::placeholder { color: var(--text-3); font-weight: 400; }
+.dp-display::placeholder { color: var(--text-3); font-size: 13px; font-weight: 400; }
 .dp-clear { border: none; background: transparent; cursor: pointer; color: var(--text-3); font-size: 17px; padding: 0; line-height: 1; transition: color .2s; }
 .dp-clear:hover { color: var(--color-error); }
 .dp-caret { color: var(--text-3); transition: transform .2s; }
 .dp-caret.rotated { transform: rotate(180deg); }
-.dp-equiv { font-size: 11.5px; color: var(--text-3); margin-top: 5px; }
+.dp-error { display: flex; align-items: center; gap: 5px; color: var(--color-error); font-size: 13px; font-weight: 600; margin-top: 5px; }
+.dp-equiv { font-size: 13px; color: var(--text-2); margin-top: 5px; }
 .dp-equiv b { color: var(--text-2); font-weight: 600; }
 .dp-panel {
   position: absolute; top: calc(100% + 6px); right: 0; width: 302px;
@@ -211,4 +315,9 @@ function nextMonth() { if (viewM.value === 12) { viewM.value = 1; viewY.value++ 
 .dp-clear-btn:hover { color: var(--color-error); }
 .dp-pop-enter-active, .dp-pop-leave-active { transition: all .18s ease; transform-origin: top center; }
 .dp-pop-enter-from, .dp-pop-leave-to { opacity: 0; transform: translateY(-6px) scale(.97); }
+@media (max-width: 520px) {
+  .dp-input-row { grid-template-columns: 1fr; }
+  .dp-mode { width: 100%; }
+  .dp-mode-btn { flex: 1; }
+}
 </style>

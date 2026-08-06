@@ -1,73 +1,98 @@
 <template>
-  <div>
-    <div class="page-header">
-      <div>
-        <div class="page-title">{{ d.fullName }}</div>
-        <div class="page-subtitle">پرونده اهداکننده پیوند کلیه</div>
-      </div>
-      <div class="flex gap-2">
-        <button class="btn btn-secondary" @click="$router.push('/donors')"><i class="ri-arrow-right-line"></i> بازگشت</button>
-        <button class="btn btn-primary"><i class="ri-edit-line"></i> ویرایش</button>
-      </div>
+  <div v-if="loading" class="empty-state"><i class="ri-loader-4-line"></i><h3>در حال دریافت پرونده اهداکننده…</h3></div>
+  <div v-else-if="loadError" class="empty-state"><i class="ri-error-warning-line"></i><h3>{{ loadError }}</h3><button class="btn btn-secondary mt-3" @click="loadDonor">تلاش دوباره</button></div>
+  <div v-else class="profile-page">
+    <div class="page-header"><div><div class="page-title">پرونده اهداکننده</div><div class="page-subtitle">اطلاعات بالینی، وضعیت و گیرندگان سازگار در یک نمای واحد</div></div><button class="btn btn-secondary" @click="$router.push('/donors')"><i class="ri-arrow-right-line"></i> بازگشت</button></div>
+
+    <section class="profile-hero">
+      <div class="profile-avatar donor-avatar gender-avatar" :aria-label="detail.person.gender==='female'?'خانم':'آقا'">{{ detail.person.gender==='female'?'🧕':'👨' }}</div>
+      <div class="hero-identity"><div class="hero-title-row"><h2>{{ d.fullName }}</h2><span :class="['status-pill',statusTone(d.status)]">{{ d.statusDisplay }}</span></div><div class="profile-meta"><span><i class="ri-profile-line"></i> {{ toFa(d.nationalId) }}</span><span><i class="ri-calendar-line"></i> {{ calculateAge(d.birthDate) }} سال</span><span><i class="ri-drop-line"></i> {{ bloodGroup }}</span><span><i class="ri-hospital-line"></i> {{ detail.person.center?.name || 'بدون مرکز' }}</span></div></div>
+      <div class="hero-stats"><div><small>نوع اهداکننده</small><strong>{{ donorTypeLabel }}</strong><span>{{ d.relationship || 'بدون نسبت ثبت‌شده' }}</span></div><div><small>گیرنده ترجیحی</small><strong>{{ detail.profile.preferred_recipient?.full_name || 'ندارد' }}</strong><span>{{ detail.profile.is_related_recipient_candidate ? 'وابسته به گیرنده خاص' : 'قابل تخصیص ملی' }}</span></div><div><small>تایپ HLA</small><strong>{{ hlaSelectionCount ? `${toFa(hlaSelectionCount)} آلل` : 'ثبت نشده' }}</strong><span>{{ detail.hla ? formatFaDate(detail.hla.updated_at) : 'نیازمند تکمیل' }}</span></div></div>
+      <div class="hero-actions"><button v-if="canManage&&d.allowedTransitions?.includes('available')" class="btn btn-primary" @click="addToWaiting"><i class="ri-list-check-2"></i> افزودن به لیست انتظار</button><button v-if="canManage&&d.allowedTransitions?.includes('suspended')" class="btn btn-secondary" @click="leaveWaiting"><i class="ri-pause-circle-line"></i> خروج موقت از لیست</button><button v-if="canManage" class="btn btn-primary" :disabled="!d.allowedTransitions?.length" @click="openStatusModal"><i class="ri-arrow-left-right-line"></i> تغییر وضعیت</button></div>
+    </section>
+
+    <div class="tabs profile-tabs"><button v-for="tab in tabs" :key="tab.key" class="tab" :class="{active:activeTab===tab.key}" @click="selectTab(tab.key)"><i :class="tab.icon"></i> {{ tab.label }}<span v-if="tab.key==='matches'&&matches.length" class="tab-count">{{ toFa(matches.length) }}</span></button></div>
+
+    <div v-if="activeTab==='overview'" class="overview-stack">
+      <div class="grid grid-3"><article class="summary-card"><i class="ri-heart-pulse-line"></i><div><small>غربالگری بیماری‌های زمینه‌ای</small><strong>{{ healthRiskCount ? `${toFa(healthRiskCount)} مورد نیازمند توجه` : 'بدون ریسک اعلام‌شده' }}</strong><span>دیابت، فشارخون و حساسیت دارویی</span></div></article><article class="summary-card"><i class="ri-flask-line"></i><div><small>آزمایش‌ها</small><strong>{{ toFa(detail.lab_tests.length) }} نتیجه</strong><span>{{ expiredLabs }} مورد منقضی</span></div></article><article class="summary-card"><i class="ri-checkbox-circle-line"></i><div><small>تأییدیه‌های پزشکی</small><strong>{{ toFa(approvedCount) }} از {{ toFa(detail.approvals.length) }}</strong><span>تأییدیه ثبت‌شده</span></div></article></div>
+      <section class="form-card"><div class="form-card-title"><i class="ri-stethoscope-line"></i> جمع‌بندی پزشکی</div><div class="info-grid"><div><small>سابقه دیابت فرد</small><strong>{{ yesNo(detail.profile.self_diabetes_history) }}</strong></div><div><small>سابقه فشارخون فرد</small><strong>{{ yesNo(detail.profile.self_hypertension_history) }}</strong></div><div><small>دیابت در والدین</small><strong>{{ yesNo(detail.profile.parent_diabetes_history) }}</strong></div><div><small>فشارخون در والدین</small><strong>{{ yesNo(detail.profile.parent_hypertension_history) }}</strong></div><div><small>حساسیت دارویی</small><strong>{{ yesNo(detail.profile.has_drug_allergy) }}</strong></div><div><small>وضعیت تخصیص</small><strong>{{ detail.profile.is_related_recipient_candidate ? 'گیرنده مرتبط' : 'فهرست ملی' }}</strong></div></div></section>
     </div>
 
-    <div class="profile-header donor">
-      <div class="profile-avatar">{{ d.fullName[0] }}</div>
-      <div class="profile-info">
-        <h2>{{ d.fullName }}</h2>
-        <div class="profile-meta">
-          <div class="profile-meta-item"><i class="ri-id-card-line"></i> {{ d.nationalId }}</div>
-          <div class="profile-meta-item"><i class="ri-calendar-line"></i> {{ calculateAge(d.birthDate) }} سال</div>
-          <div class="profile-meta-item"><i class="ri-drop-line"></i> {{ d.bloodType }}{{ d.rhFactor === 'positive' ? '+' : '-' }}</div>
-          <div class="profile-meta-item"><i class="ri-hand-heart-line"></i> {{ d.donorType === 'living_related' ? 'زنده خویشاوند' : d.donorType === 'living_unrelated' ? 'زنده غیرخویشاوند' : 'فوت شده' }}</div>
-          <div class="profile-meta-item" v-if="d.relationship"><i class="ri-links-line"></i> {{ d.relationship }}</div>
-        </div>
-      </div>
-    </div>
+    <section v-else-if="activeTab==='personal'" class="form-card"><div class="section-heading"><div class="form-card-title"><i class="ri-user-line"></i> اطلاعات فردی و تماس</div><button class="btn btn-primary btn-sm" @click="showPersonModal=true"><i class="ri-edit-line"></i> ویرایش اطلاعات مجاز</button></div><div class="info-grid"><div><small>نام و نام خانوادگی</small><strong>{{ detail.person.full_name }}</strong></div><div><small>کد ملی / شناسه</small><strong>{{ toFa(detail.person.identifier) }}</strong></div><div><small>تاریخ تولد</small><strong>{{ formatFaDate(detail.person.birth_date) }}</strong></div><div><small>جنسیت</small><strong>{{ detail.person.gender==='male'?'مرد':'زن' }}</strong></div><div><small>شماره همراه</small><strong>{{ toFa(detail.person.phone) }}</strong></div><div><small>تماس اضطراری</small><strong>{{ toFa(detail.person.emergency_contact_phone||'—') }}</strong></div><div><small>قد</small><strong>{{ detail.person.height_cm ? `${measurement(detail.person.height_cm)} سانتی‌متر` : '—' }}</strong></div><div><small>وزن</small><strong>{{ detail.person.weight_kg ? `${measurement(detail.person.weight_kg)} کیلوگرم` : '—' }}</strong></div></div></section>
 
-    <div class="tabs">
-      <button v-for="tab in tabs" :key="tab.key" class="tab" :class="{active:activeTab===tab.key}" @click="activeTab=tab.key">
-        <i :class="tab.icon"></i> {{ tab.label }}
-      </button>
-    </div>
+    <section v-else-if="activeTab==='hla'" class="form-card"><div class="section-heading"><div class="form-card-title"><i class="ri-dna-line"></i> تایپ HLA اهداکننده</div><button class="btn btn-primary btn-sm" @click="showHlaModal=true"><i :class="detail.hla?'ri-edit-line':'ri-add-line'"></i> {{ detail.hla?'ویرایش':'افزودن' }}</button></div><div v-if="detail.hla" class="hla-grid"><div v-for="field in hlaFields" :key="field.key" class="hla-item"><strong>{{ field.label }}</strong><div class="tag-row"><span v-for="(allele,index) in detail.hla[field.key]" :key="`${allele}-${index}`" class="badge badge-info">{{ allele }}</span><span v-if="!detail.hla[field.key]?.length">—</span></div></div></div><div v-else class="compact-empty-state empty-state"><i class="ri-dna-line"></i><h3>تایپ HLA ثبت نشده است</h3></div></section>
 
-    <div v-if="activeTab==='overview'" class="grid grid-3">
-      <div v-for="ph in overviewBlocks" :key="ph.title" class="placeholder-tile">
-        <i :class="ph.icon"></i>
-        <h3>{{ ph.title }}</h3>
-        <p>{{ ph.desc }}</p>
+    <lab-tests-panel v-else-if="activeTab==='labs'" :person-id="detail.person.id" :gender="detail.person.gender" :lab-tests="detail.lab_tests" @refresh="loadDonor" />
+
+    <approval-panel v-else-if="activeTab==='approvals'" :person-id="detail.person.id" role="donor" :approvals="detail.approvals" @refresh="loadDonor" />
+
+    <section v-else-if="activeTab==='matches'" class="form-card matching-accordion">
+      <div class="accordion-result-heading" @click="matchesOpen=!matchesOpen"><div><div class="form-card-title"><i class="ri-exchange-2-line"></i> گیرندگان بررسی‌شده <span class="badge badge-info">{{ toFa(matches.length) }}</span></div><p class="section-hint">هویت گیرنده خارج از مرکز شما به‌صورت ناشناس نمایش داده می‌شود.</p></div><div class="button-row" @click.stop><button v-if="matches.length" class="btn btn-secondary btn-sm" @click="exportMatches"><i class="ri-file-excel-2-line"></i> خروجی Excel</button><button class="btn btn-secondary btn-sm" :disabled="matchingLoading" @click="loadMatches"><i class="ri-refresh-line"></i> تازه‌سازی</button><button class="btn btn-primary btn-sm" :disabled="matchingLoading||!['available','reserved'].includes(d.status)" @click="enqueueMatching"><i :class="matchingLoading?'ri-loader-4-line':'ri-play-circle-line'"></i> اجرای سازگاری‌سنجی</button><button class="icon-btn" @click="matchesOpen=!matchesOpen"><i :class="matchesOpen?'ri-arrow-up-s-line':'ri-arrow-down-s-line'"></i></button></div></div>
+      <div v-show="matchesOpen" class="accordion-result-content">
+      <div v-if="matchingLoading" class="inline-loading"><i class="ri-loader-4-line"></i> در حال دریافت نتایج…</div>
+      <div v-else-if="matches.length" class="match-list"><article v-for="match in matches" :key="match.id" class="match-card"><div class="match-rank">{{ match.rank ? `#${toFa(match.rank)}` : '—' }}</div><div class="match-main"><strong>{{ match.recipient.full_name || match.recipient.anonymous_code }}</strong><span>{{ match.recipient.blood_group }} · {{ match.recipient.center || 'مرکز نامشخص' }}</span><div class="tag-row"><span :class="['badge',compatibilityTone(match.compatibility)]">{{ match.compatibility_display }}</span><span :class="['badge',match.abo_compatible?'badge-success':'badge-danger']">ABO {{ match.abo_compatible?'سازگار':'ناسازگار' }}</span><span class="badge badge-info">HLA {{ toFa(match.hla_summary?.total_matches||0) }}/{{ toFa(10) }}</span><span v-if="match.creg_summary?.has_antibody" :class="['badge',match.creg_summary?.has_potential_conflict?'badge-warning':'badge-success']">CREG {{ match.creg_summary?.has_potential_conflict?'بالقوه موجود':'یافت نشد' }}</span></div><small v-if="match.rejection_reasons?.length" class="text-danger">{{ reasonMessages(match.rejection_reasons) }}</small><small v-else-if="match.warnings?.length" class="text-warning">{{ reasonMessages(match.warnings) }}</small></div><div class="match-actions"><div class="score-ring">{{ toFa(Math.round(match.final_score)) }}<small>امتیاز</small></div><button v-if="match.recipient.can_view_profile" class="btn btn-secondary btn-sm" @click="$router.push(`/recipients/${match.recipient.id}`)">مشاهده پرونده</button></div></article></div>
+      <div v-else class="compact-empty-state empty-state"><i class="ri-exchange-2-line"></i><h3>نتیجه‌ای ثبت نشده است</h3><p>برای اهداکننده در دسترس، سازگاری‌سنجی را اجرا کنید.</p></div>
       </div>
-    </div>
-    <div v-else class="tab-placeholder">
-      <div class="tab-placeholder-icon"><i :class="activeTabObj.icon"></i></div>
-      <h3>{{ activeTabObj.label }}</h3>
-      <p>محتوای این بخش پس از طراحی نهایی تکمیل خواهد شد.</p>
-    </div>
+    </section>
+
+    <section v-else-if="activeTab==='status'" class="status-layout"><div class="form-card status-current"><div class="form-card-title"><i class="ri-pulse-line"></i> وضعیت فعلی</div><span :class="['status-pill large',statusTone(d.status)]">{{ d.statusDisplay }}</span><p>آخرین تغییر: {{ latestEvent ? formatFaDateTime(latestEvent.created_at) : 'ثبت نشده' }}</p><div class="workflow-help">ورود به صف با وضعیت «در دسترس برای Matching» و خروج موقت با وضعیت «معلق» انجام می‌شود. منع دائم فقط از پنجره تغییر وضعیت و با ثبت دلیل قابل انتخاب است.</div><button v-if="canManage" class="btn btn-primary" :disabled="!d.allowedTransitions?.length" @click="openStatusModal">تغییر وضعیت</button></div><div class="form-card"><div class="form-card-title"><i class="ri-road-map-line"></i> وضعیت‌های بعدی مجاز</div><div class="tag-row"><span v-for="status in d.allowedTransitions" :key="status" class="badge badge-info">{{ donorStatusLabels[status]||status }}</span><span v-if="!d.allowedTransitions?.length" class="text-secondary">گذار بعدی برای این وضعیت تعریف نشده است.</span></div></div></section>
+
+    <section v-else-if="activeTab==='history'" class="form-card"><div class="form-card-title"><i class="ri-history-line"></i> تاریخچه تغییرات پرونده</div><div v-if="detail.state_events.length" class="timeline"><article v-for="event in detail.state_events" :key="event.id"><span class="timeline-dot"></span><div><strong>{{ event.previous_status ? `${donorStatusLabels[event.previous_status]||event.previous_status} ← ` : '' }}{{ donorStatusLabels[event.new_status]||event.new_status }}</strong><p>{{ event.reason }}</p><small>{{ formatFaDateTime(event.created_at) }} · {{ event.actor }}</small></div></article></div><div v-else class="compact-empty-state empty-state"><i class="ri-history-line"></i><h3>رویدادی ثبت نشده است</h3></div></section>
+
+    <hla-typing-modal v-model:visible="showHlaModal" :initial-value="detail.hla" @save="saveHla" />
+    <person-profile-edit-modal v-model:visible="showPersonModal" :person="detail.person" @save="savePersonProfile" />
+    <div v-if="canManage&&showStatusModal" class="modal-overlay" @click.self="showStatusModal=false"><div class="modal narrow"><div class="modal-header"><h3>تغییر وضعیت اهداکننده</h3><button class="modal-close" @click="showStatusModal=false"><i class="ri-close-line"></i></button></div><div class="form-group"><label class="form-label">وضعیت بعدی</label><select v-model="nextStatus" class="form-input"><option value="">انتخاب کنید</option><option v-for="key in d.allowedTransitions" :key="key" :value="key">{{ donorStatusLabels[key]||key }}</option></select></div><div class="form-group"><label class="form-label">دلیل تغییر</label><textarea v-model="statusReason" class="form-input" rows="4" placeholder="دلیل بالینی یا اجرایی تغییر وضعیت"></textarea></div><div class="modal-footer"><button class="btn btn-secondary" @click="showStatusModal=false">لغو</button><button class="btn btn-primary" :disabled="!nextStatus||!statusReason.trim()||saving" @click="saveStatus">ثبت رویداد</button></div></div></div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { formatFaDate } from '../utils/date'
-import { mockDonors } from '../data/mockData'
+import { toFaDigits, formatFaDate } from '../utils/date'
+import { registryApi } from '../services/api'
+import { useAuth } from '../composables/useAuth'
+import HlaTypingModal from '../components/HlaTypingModal.vue'
+import PersonProfileEditModal from '../components/PersonProfileEditModal.vue'
+import LabTestsPanel from '../components/LabTestsPanel.vue'
+import ApprovalPanel from '../components/ApprovalPanel.vue'
+import { exportExcelTable } from '../utils/excel'
 
-const route = useRoute()
-const d = computed(() => mockDonors.find(x => x._id === route.params.id) || mockDonors[0])
-const activeTab = ref('overview')
-const tabs = [
-  { key: 'overview', label: 'خلاصه پرونده', icon: 'ri-dashboard-2-line' },
-  { key: 'personal', label: 'اطلاعات فردی', icon: 'ri-user-line' },
-  { key: 'medical', label: 'سوابق پزشکی', icon: 'ri-stethoscope-line' },
-  { key: 'hla', label: 'تایپ HLA', icon: 'ri-dna-line' },
-  { key: 'labs', label: 'آزمایش‌ها', icon: 'ri-flask-line' },
-  { key: 'approvals', label: 'تاییدیه‌ها', icon: 'ri-checkbox-circle-line' }
-]
-const activeTabObj = computed(() => tabs.find(t => t.key === activeTab.value) || tabs[0])
-const overviewBlocks = [
-  { title: 'شاخص‌های اهدا', desc: 'نوع اهدا، نسبت با گیرنده و وضعیت در دسترس بودن', icon: 'ri-hand-heart-line' },
-  { title: 'خلاصه پزشکی', desc: 'چکیده سوابق و ارزیابی‌های بالینی اهداکننده', icon: 'ri-file-text-line' },
-  { title: 'اقدامات اخیر', desc: 'آخرین آزمایش‌ها و تاییدیه‌های ثبت‌شده', icon: 'ri-history-line' }
-]
-const calculateAge = (birthDate) => birthDate ? new Date().getFullYear() - new Date(birthDate).getFullYear() : '—'
+const route=useRoute(),{authState}=useAuth()
+const detail=ref({summary:{},person:{},profile:{},hla:null,lab_tests:[],approvals:[],state_events:[]}),matches=ref([])
+const loading=ref(true),matchingLoading=ref(false),saving=ref(false),loadError=ref(''),activeTab=ref('overview')
+const matchesOpen=ref(true)
+const showHlaModal=ref(false),showPersonModal=ref(false),showStatusModal=ref(false),nextStatus=ref(''),statusReason=ref(''),toFa=toFaDigits
+const d=computed(()=>detail.value.summary),canManage=computed(()=>authState.user?.can_manage_clinical_workflow===true)
+const hlaFields=[{key:'hla_a',label:'HLA-A'},{key:'hla_b',label:'HLA-B'},{key:'hla_c',label:'HLA-C'},{key:'hla_drb1',label:'HLA-DRB1'},{key:'hla_dqb1',label:'HLA-DQB1'},{key:'hla_drb',label:'HLA-DRB3/4/5'},{key:'hla_dqa1',label:'HLA-DQA1'},{key:'hla_dpb1',label:'HLA-DPB1'},{key:'hla_dpa1',label:'HLA-DPA1'}]
+const tabs=[{key:'overview',label:'خلاصه پرونده',icon:'ri-dashboard-2-line'},{key:'personal',label:'اطلاعات فردی',icon:'ri-user-line'},{key:'hla',label:'تایپ HLA',icon:'ri-dna-line'},{key:'labs',label:'آزمایش‌ها',icon:'ri-flask-line'},{key:'approvals',label:'تأییدیه‌ها',icon:'ri-checkbox-circle-line'},{key:'matches',label:'گیرندگان سازگار',icon:'ri-exchange-2-line'},{key:'status',label:'وضعیت',icon:'ri-pulse-line'},{key:'history',label:'تاریخچه',icon:'ri-history-line'}]
+const donorStatusLabels={registered:'ثبت‌نام اولیه',medical_screening:'در غربالگری پزشکی',available:'در دسترس برای Matching',match_candidate:'کاندیدای اهدا',awaiting_crossmatch:'در انتظار Cross-Match',ready:'آماده عمل',donated:'اهدا انجام شد',follow_up:'پیگیری پس از اهدا',reserved:'رزرو شده برای گیرنده خاص',suspended:'معلق',permanent_deferral:'منع دائم پزشکی'}
+const bloodGroup=computed(()=>`${d.value.bloodType||''}${d.value.rhFactor==='positive'?'+':'-'}`),donorTypeLabel=computed(()=>d.value.donorType==='living_related'?'زنده خویشاوند':'زنده غیرخویشاوند')
+const hlaSelectionCount=computed(()=>detail.value.hla?hlaFields.reduce((n,f)=>n+(detail.value.hla[f.key]?.length||0),0):0)
+const approvedCount=computed(()=>detail.value.approvals.filter(item=>item.status==='approved').length),expiredLabs=computed(()=>toFa(detail.value.lab_tests.filter(item=>item.is_expired).length))
+const healthRiskCount=computed(()=>['self_diabetes_history','self_hypertension_history','has_drug_allergy'].filter(key=>detail.value.profile[key]).length),latestEvent=computed(()=>detail.value.state_events[0]||null)
+const yesNo=value=>value?'بله':'خیر',calculateAge=date=>date?toFa(Math.max(0,new Date().getFullYear()-new Date(date).getFullYear())):'—'
+const measurement=value=>toFa(Number(value).toString())
+const formatFaDateTime=value=>value?`${formatFaDate(value)}، ${toFa(new Date(value).toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit'}))}`:'—'
+const statusTone=value=>['available','ready'].includes(value)?'is-success':['medical_screening','awaiting_crossmatch','reserved','suspended'].includes(value)?'is-warning':['permanent_deferral'].includes(value)?'is-danger':'is-info'
+const compatibilityTone=value=>value==='compatible'?'badge-success':value==='conditional'?'badge-warning':'badge-danger'
+const reasonMessages=items=>items.map(item=>typeof item==='string'?item:item.message).join('، ')
+const errorDetail=error=>Object.values(error?.data?.errors||{}).flat()[0]||error?.message||'عملیات انجام نشد',toast=(severity,summary,message)=>window.toast?.add({severity,summary,detail:message})
+async function loadDonor(){loading.value=true;loadError.value='';try{const response=await registryApi.getDonor(route.params.id);detail.value=response.donor}catch(error){loadError.value=error?.message||'دریافت پرونده اهداکننده انجام نشد'}finally{loading.value=false}}
+async function loadMatches(){matchingLoading.value=true;try{const response=await registryApi.getDonorMatches(route.params.id);matches.value=response.matches;matchesOpen.value=true}catch(error){toast('error','خطا',errorDetail(error))}finally{matchingLoading.value=false}}
+function exportMatches(){const headers=['رتبه','گیرنده','مرکز','گروه خونی','سازگاری','ABO','تطابق HLA','CREG','امتیاز','هشدارها'];const rows=matches.value.map(match=>[match.rank||'',match.recipient.full_name||match.recipient.anonymous_code,match.recipient.center||'',match.recipient.blood_group,match.compatibility_display,match.abo_compatible?'سازگار':'ناسازگار',`${match.hla_summary?.total_matches||0}/10`,match.creg_summary?.has_potential_conflict?'بالقوه موجود':'یافت نشد',match.final_score,reasonMessages(match.warnings||[])]);exportExcelTable(`donor-${route.params.id}-matches.xls`,'سازگاری‌ها',headers,rows)}
+function selectTab(key){activeTab.value=key;if(key==='matches'&&!matches.value.length)loadMatches()}
+async function enqueueMatching(){matchingLoading.value=true;try{const response=await registryApi.enqueueMatching({donor_id:route.params.id});toast('success','در صف پردازش',response.message);await loadMatches();setTimeout(loadMatches,2500)}catch(error){toast('error','خطا',errorDetail(error));matchingLoading.value=false}}
+async function saveHla(payload){try{await registryApi.saveHla(route.params.id,payload);toast('success','موفق','تایپ HLA ذخیره شد');await loadDonor()}catch(error){toast('error','خطا',errorDetail(error))}}
+async function savePersonProfile(payload){saving.value=true;try{await registryApi.updatePersonProfile(detail.value.person.id,payload);toast('success','اطلاعات تماس','اطلاعات مجاز پرونده ذخیره شد');showPersonModal.value=false;await loadDonor()}catch(error){toast('error','خطا',errorDetail(error))}finally{saving.value=false}}
+async function addToWaiting(){saving.value=true;try{const response=await registryApi.updateDonorStatus(route.params.id,'available','افزودن اهداکننده به لیست انتظار از پرونده کاربری');toast('success','لیست انتظار',response.message);await loadDonor()}catch(error){toast('error','خطا',errorDetail(error))}finally{saving.value=false}}
+async function leaveWaiting(){saving.value=true;try{const response=await registryApi.updateDonorStatus(route.params.id,'suspended','خروج موقت اهداکننده از لیست انتظار از طریق پرونده');toast('success','لیست انتظار',response.message);await loadDonor()}catch(error){toast('error','خطا',errorDetail(error))}finally{saving.value=false}}
+function openStatusModal(){nextStatus.value='';statusReason.value='';showStatusModal.value=true}
+async function saveStatus(){saving.value=true;try{const response=await registryApi.updateDonorStatus(route.params.id,nextStatus.value,statusReason.value);toast('success','وضعیت',response.message);showStatusModal.value=false;await loadDonor()}catch(error){toast('error','خطا',errorDetail(error))}finally{saving.value=false}}
+onMounted(loadDonor)
 </script>
+
+<style scoped>
+.gender-avatar{font-size:34px}.workflow-help{padding:10px;background:var(--surface-muted);border-radius:var(--radius-md);color:var(--text-2);font-size:12px}.accordion-result-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer}.accordion-result-content{padding-top:16px;border-top:1px solid var(--border);margin-top:14px}
+.profile-page,.overview-stack,.record-list,.match-list{display:grid;gap:16px}.profile-hero{display:grid;grid-template-columns:auto minmax(220px,1fr) minmax(360px,1.2fr) auto;align-items:center;gap:20px;padding:22px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-1)}.donor-avatar{background:linear-gradient(135deg,#0f766e,#14b8a6)}.hero-title-row,.section-heading,.button-row,.tag-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.hero-title-row h2{margin:0}.profile-meta{display:flex;gap:14px;flex-wrap:wrap;color:var(--text-2);margin-top:10px}.profile-meta span{display:flex;align-items:center;gap:5px}.hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.hero-stats>div,.summary-card{padding:12px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--surface-2)}.hero-stats small,.hero-stats span,.summary-card small,.summary-card span,.info-grid small,.record-card small{display:block;color:var(--text-2);font-size:12px}.hero-stats strong{display:block;font-size:16px;margin:4px 0}.hero-actions{display:grid}.profile-tabs{overflow-x:auto}.tab-count{min-width:20px;height:20px;border-radius:99px;padding:0 5px;background:var(--color-primary-soft);display:inline-grid;place-items:center}.summary-card{display:flex;align-items:center;gap:12px}.summary-card>i{font-size:30px;color:#0f766e}.summary-card strong{display:block;margin:4px 0}.info-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden}.info-grid>div{padding:14px;border-left:1px solid var(--border);border-bottom:1px solid var(--border);display:grid;gap:5px}.section-heading{justify-content:space-between;margin-bottom:16px}.section-heading .form-card-title{margin:0}.section-hint{margin:4px 0 0;color:var(--text-2);font-size:13px}.hla-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.hla-item{display:grid;gap:8px;padding:12px;border:1px solid var(--border);border-radius:var(--radius-md)}.record-card{display:grid;grid-template-columns:minmax(150px,.65fr) minmax(0,1fr) auto;align-items:center;gap:14px;padding:14px;border:1px solid var(--border);border-radius:var(--radius-md)}.record-card>div:first-child{display:grid;gap:5px}.match-card{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:16px;padding:16px;border:1px solid var(--border);border-radius:var(--radius-lg)}.match-rank{font-weight:800;color:var(--color-primary)}.match-main,.match-actions{display:grid;gap:7px}.match-main>span{color:var(--text-2)}.score-ring{width:64px;height:64px;border:5px solid #ccfbf1;border-top-color:#0f766e;border-radius:50%;display:grid;place-items:center;font-weight:800}.score-ring small{font-size:9px;font-weight:400;margin-top:-14px}.inline-loading{text-align:center;padding:30px;color:var(--text-2)}.status-layout{display:grid;grid-template-columns:.7fr 1.3fr;gap:16px}.status-current{display:grid;gap:16px;justify-items:start}.status-pill{display:inline-flex;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700}.status-pill.large{font-size:15px;padding:9px 14px}.is-success{background:#dcfce7;color:#166534}.is-warning{background:#fef3c7;color:#92400e}.is-danger{background:#fee2e2;color:#991b1b}.is-info{background:var(--color-primary-soft);color:var(--color-primary)}.timeline{display:grid}.timeline article{position:relative;display:grid;grid-template-columns:20px 1fr;gap:10px;padding-bottom:22px}.timeline article:not(:last-child)::before{content:'';position:absolute;right:7px;top:14px;bottom:0;width:2px;background:var(--border)}.timeline-dot{width:16px;height:16px;border:4px solid #ccfbf1;border-radius:50%;background:#0f766e;z-index:1}.timeline p{margin:5px 0;color:var(--text-2)}.timeline small{color:var(--text-3)}.narrow{max-width:540px}.text-danger{color:var(--color-danger)}.text-warning{color:#a16207}
+@media(max-width:1100px){.profile-hero{grid-template-columns:auto 1fr}.hero-stats{grid-column:1/-1}.hero-actions{grid-column:1/-1}.info-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:700px){.profile-hero{grid-template-columns:1fr}.profile-avatar{display:none}.hero-stats,.hla-grid,.info-grid,.status-layout{grid-template-columns:1fr}.record-card,.match-card{grid-template-columns:1fr}.hero-actions,.button-row{width:100%}.button-row .btn{flex:1}}
+</style>

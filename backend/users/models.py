@@ -22,6 +22,10 @@ class Center(models.Model):
 
 
 class User(AbstractUser):
+    class CoordinatorLevel(models.TextChoices):
+        LEVEL_ONE = "level_one", "هماهنگ‌کننده پیوند سطح یک"
+        LEVEL_TWO = "level_two", "هماهنگ‌کننده پیوند سطح دو"
+
     class Gender(models.TextChoices):
         MALE = "male", "مرد"
         FEMALE = "female", "زن"
@@ -48,6 +52,12 @@ class User(AbstractUser):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
+    )
+    coordinator_level = models.CharField(
+        "سطح هماهنگ‌کننده",
+        max_length=16,
+        choices=CoordinatorLevel.choices,
+        default=CoordinatorLevel.LEVEL_TWO,
     )
     notify_email_new_match = models.BooleanField(
         "ایمیل تطابق جدید", default=True
@@ -86,6 +96,10 @@ class User(AbstractUser):
     @property
     def full_name(self):
         return self.get_full_name().strip() or self.username
+
+    @property
+    def can_manage_clinical_workflow(self):
+        return self.coordinator_level == self.CoordinatorLevel.LEVEL_ONE
 
 
 class AccessToken(models.Model):

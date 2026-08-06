@@ -15,6 +15,9 @@ import DonorDetailView from '../views/DonorDetailView.vue'
 import MatchingDashboardView from '../views/MatchingDashboardView.vue'
 import VirtualCrossmatchView from '../views/VirtualCrossmatchView.vue'
 import WaitingListRecipientsView from '../views/WaitingListRecipientsView.vue'
+import WaitingListDonorsView from '../views/WaitingListDonorsView.vue'
+import DeceasedDonorMatchingView from '../views/DeceasedDonorMatchingView.vue'
+import PatientMatchesView from '../views/PatientMatchesView.vue'
 import UserProfileView from '../views/UserProfileView.vue'
 import ForgotPasswordView from '../views/ForgotPasswordView.vue'
 import ResetPasswordView from '../views/ResetPasswordView.vue'
@@ -40,6 +43,9 @@ const routes = [
       { path: 'matching', component: MatchingDashboardView },
       { path: 'matching/virtual-crossmatch', component: VirtualCrossmatchView },
       { path: 'waiting-list/recipients', component: WaitingListRecipientsView },
+      { path: 'waiting-list/donors', component: WaitingListDonorsView },
+      { path: 'matching/deceased-donor', component: DeceasedDonorMatchingView },
+      { path: 'patient-portal/matches', component: PatientMatchesView },
       { path: 'profile', name: 'user-profile', component: UserProfileView }
     ]
   }

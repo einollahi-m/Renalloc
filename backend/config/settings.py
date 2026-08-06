@@ -1,6 +1,8 @@
 import os
 from pathlib import Path
 
+from celery.schedules import crontab
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -17,6 +19,18 @@ ALLOWED_HOSTS = [
     if host.strip()
 ]
 
+# Production deployments terminate TLS at the trusted reverse proxy. These
+# defaults stay development-friendly and become secure automatically when
+# DJANGO_DEBUG=false; every value remains explicitly configurable.
+SECURE_SSL_REDIRECT = env_bool("DJANGO_SECURE_SSL_REDIRECT", not DEBUG)
+SESSION_COOKIE_SECURE = env_bool("DJANGO_SESSION_COOKIE_SECURE", not DEBUG)
+CSRF_COOKIE_SECURE = env_bool("DJANGO_CSRF_COOKIE_SECURE", not DEBUG)
+SECURE_HSTS_SECONDS = int(os.getenv("DJANGO_SECURE_HSTS_SECONDS", "0" if DEBUG else "31536000"))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = env_bool("DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS", not DEBUG)
+SECURE_HSTS_PRELOAD = env_bool("DJANGO_SECURE_HSTS_PRELOAD", False)
+if env_bool("DJANGO_TRUST_PROXY_HTTPS"):
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -25,6 +39,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "users",
+    "registry",
 ]
 
 MIDDLEWARE = [
@@ -64,6 +79,9 @@ if env_bool("RENALLOC_USE_SQLITE"):
         }
     }
 else:
+    database_options = {}
+    if sslmode := os.getenv("POSTGRES_SSLMODE", "").strip():
+        database_options["sslmode"] = sslmode
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
@@ -73,6 +91,7 @@ else:
             "HOST": os.getenv("POSTGRES_HOST", "localhost"),
             "PORT": os.getenv("POSTGRES_PORT", "5433"),
             "CONN_MAX_AGE": 60,
+            "OPTIONS": database_options,
         }
     }
 
@@ -109,3 +128,39 @@ EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS")
 # API tokens are intentionally short-lived unless the user selects "remember me".
 AUTH_TOKEN_TTL_HOURS = int(os.getenv("AUTH_TOKEN_TTL_HOURS", "8"))
 AUTH_REMEMBER_TOKEN_TTL_DAYS = int(os.getenv("AUTH_REMEMBER_TOKEN_TTL_DAYS", "30"))
+
+# Matching and expiry checks run outside web requests. SQLite-based local tests
+# execute tasks eagerly; PostgreSQL deployments use Redis by default.
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
+CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/1")
+CELERY_TASK_ALWAYS_EAGER = env_bool(
+    "CELERY_TASK_ALWAYS_EAGER", env_bool("RENALLOC_USE_SQLITE")
+)
+CELERY_TASK_EAGER_PROPAGATES = True
+CELERY_TASK_ACKS_LATE = True
+CELERY_TASK_REJECT_ON_WORKER_LOST = True
+CELERY_WORKER_PREFETCH_MULTIPLIER = int(os.getenv("CELERY_WORKER_PREFETCH_MULTIPLIER", "1"))
+CELERY_RESULT_EXPIRES = int(os.getenv("CELERY_RESULT_EXPIRES", "86400"))
+DECEASED_MATCH_CANDIDATE_LIMIT = int(
+    os.getenv("DECEASED_MATCH_CANDIDATE_LIMIT", "5000")
+)
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_TASK_ROUTES = {
+    "registry.match_recipient": {"queue": "matching"},
+    "registry.match_donor": {"queue": "matching"},
+    "registry.match_national": {"queue": "matching"},
+    "registry.check_test_expiry": {"queue": "maintenance"},
+}
+CELERY_BEAT_SCHEDULE = {
+    "nightly-national-matching": {
+        "task": "registry.match_national",
+        "schedule": crontab(hour=2, minute=0),
+        "options": {"expires": 23 * 60 * 60},
+    },
+    "daily-test-expiry-alerts": {
+        "task": "registry.check_test_expiry",
+        "schedule": crontab(hour=8, minute=0),
+        "kwargs": {"days": 14},
+        "options": {"expires": 23 * 60 * 60},
+    },
+}

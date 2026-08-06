@@ -4,6 +4,7 @@
 export const nationalIdChecker = (id) => {
   try {
     if (!/^\d{10}$/.test(id)) return false
+    if (/^(\d)\1{9}$/.test(id)) return false
     let sum = 0
     for (let i = 0; i < 9; i++) sum += parseInt(id[i]) * (10 - i)
     const remainder = sum % 11
@@ -63,6 +64,20 @@ export const normalizeLocalizedNumber = (v) => {
     .replace(/[^0-9.]/g, '')
   const [integer = '', ...decimals] = normalized.split('.')
   return decimals.length ? `${integer}.${decimals.join('')}` : integer
+}
+
+/**
+ * Normalize a localized signed decimal while preserving one leading minus.
+ */
+export const normalizeLocalizedSignedNumber = (v) => {
+  const compact = normalizeLocalizedDigits(v)
+    .replace(/[,\s]/g, '')
+    .replace(/[^0-9.\-]/g, '')
+  const negative = compact.startsWith('-')
+  const unsigned = compact.replace(/-/g, '')
+  const [integer = '', ...decimals] = unsigned.split('.')
+  const number = decimals.length ? `${integer}.${decimals.join('')}` : integer
+  return `${negative ? '-' : ''}${number}`
 }
 
 /**

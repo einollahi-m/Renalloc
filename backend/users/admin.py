@@ -20,10 +20,13 @@ class CoordinatorAdmin(UserAdmin):
         "email",
         "mobile_phone",
         "center",
+        "coordinator_level",
         "is_active",
         "is_staff",
     )
-    list_filter = ("is_active", "is_staff", "is_superuser", "gender", "center")
+    list_filter = (
+        "coordinator_level", "is_active", "is_staff", "is_superuser", "gender", "center"
+    )
     search_fields = (
         "username",
         "first_name",
@@ -35,7 +38,11 @@ class CoordinatorAdmin(UserAdmin):
     fieldsets = UserAdmin.fieldsets + (
         (
             "اطلاعات هماهنگ‌کننده پیوند",
-            {"fields": ("national_id", "gender", "mobile_phone", "center")},
+            {
+                "fields": (
+                    "national_id", "gender", "mobile_phone", "center", "coordinator_level"
+                )
+            },
         ),
         (
             "تنظیمات اعلان‌ها",
@@ -62,6 +69,7 @@ class CoordinatorAdmin(UserAdmin):
                     "gender",
                     "mobile_phone",
                     "center",
+                    "coordinator_level",
                 ),
             },
         ),

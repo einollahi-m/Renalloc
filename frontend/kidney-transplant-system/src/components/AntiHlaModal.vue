@@ -33,7 +33,7 @@
         </div>
         <div class="anti-hla-selection-summary">
           <i class="ri-information-line"></i>
-          {{ selectedCount ? `${toFa(selectedCount)} آنتی‌بادی انتخاب شده است` : 'حداقل یک آنتی‌بادی انتخاب کنید' }}
+          {{ selectedCount ? `${toFa(selectedCount)} گزینه انتخاب شده است` : 'هیچ آنتی‌بادی انتخاب نشده؛ ثبت نتیجه بدون آنتی‌بادی مجاز است' }}
         </div>
       </div>
       <div class="modal-footer">
@@ -120,10 +120,6 @@ function reset() {
 function submit() {
   if (!form.testDate) {
     window.toast?.add({ severity: 'warning', summary: 'خطا', detail: 'تاریخ آزمایش الزامی است' })
-    return
-  }
-  if (!selectedCount.value) {
-    window.toast?.add({ severity: 'warning', summary: 'خطا', detail: 'حداقل یک آنتی‌بادی انتخاب کنید' })
     return
   }
   const batchId = props.editBatch?.id || `anti-hla-${Date.now()}`

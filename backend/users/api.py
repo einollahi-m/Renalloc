@@ -125,6 +125,9 @@ def serialize_user(user):
             {"id": user.center_id, "name": user.center.name} if user.center else None
         ),
         "is_staff": user.is_staff,
+        "coordinator_level": user.coordinator_level,
+        "coordinator_level_display": user.get_coordinator_level_display(),
+        "can_manage_clinical_workflow": user.can_manage_clinical_workflow,
         "notification_preferences": {
             key: getattr(user, model_field)
             for key, model_field in NOTIFICATION_FIELDS.items()

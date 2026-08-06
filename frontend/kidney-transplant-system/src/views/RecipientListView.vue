@@ -87,24 +87,30 @@
                 </div>
               </div>
             </td>
-            <td style="font-family:monospace;">{{ r.nationalId }}</td>
+            <td>{{ toFa(r.nationalId) }}</td>
             <td><span class="badge badge-info">{{ r.bloodType }}{{ r.rhFactor === 'positive' ? '+' : '-' }}</span></td>
             <td>
-              <div class="flex items-center gap-2">
+              <div v-if="r.cpra !== null" class="flex items-center gap-2">
                 <div class="progress" style="width:60px;"><div class="progress-bar" :class="r.cpra>70?'danger':r.cpra>30?'warning':'success'" :style="{width:r.cpra+'%'}"></div></div>
-                <span class="font-bold">{{ r.cpra }}%</span>
+                <span class="font-bold">{{ toFa(r.cpra) }}٪</span>
               </div>
+              <span v-else>—</span>
             </td>
-            <td><span class="badge badge-primary">{{ r.priorityScore }}</span></td>
+            <td><span v-if="r.priorityScore !== null" class="badge badge-primary">{{ toFa(r.priorityScore) }}</span><span v-else>—</span></td>
             <td><span class="badge" :class="r.status==='active'?'badge-success':'badge-secondary'">{{ r.status === 'active' ? 'فعال' : 'غیرفعال' }}</span></td>
             <td @click.stop>
               <div class="flex gap-1">
                 <button class="icon-btn" title="مشاهده" @click="$router.push('/recipients/'+r._id)"><i class="ri-eye-line"></i></button>
-                <button class="icon-btn" title="ویرایش"><i class="ri-edit-line"></i></button>
               </div>
             </td>
           </tr>
-          <tr v-if="!filtered.length">
+          <tr v-if="loading">
+            <td colspan="7"><div class="empty-state" style="border:none;background:transparent;"><i class="ri-loader-4-line"></i><h3>در حال دریافت گیرندگان…</h3></div></td>
+          </tr>
+          <tr v-else-if="loadError">
+            <td colspan="7"><div class="empty-state" style="border:none;background:transparent;"><i class="ri-error-warning-line"></i><h3>{{ loadError }}</h3><button class="btn btn-secondary mt-3" @click="loadRecipients">تلاش دوباره</button></div></td>
+          </tr>
+          <tr v-else-if="!filtered.length">
             <td colspan="7">
               <div class="empty-state" style="border:none; background:transparent;">
                 <i class="ri-search-eye-line"></i>
@@ -115,61 +121,63 @@
           </tr>
         </tbody>
       </table>
+      <pagination-controls :pagination="pagination" @change="changePage" />
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { toFaDigits } from '../utils/date'
+import { registryApi } from '../services/api'
+import PaginationControls from '../components/PaginationControls.vue'
 
-const router = useRouter()
 const search = ref('')
 const showFilters = ref(false)
 const filters = reactive({ citizenship: '', gender: '', bloodType: '', status: '' })
 const toFa = toFaDigits
+const recipients = ref([])
+const loading = ref(true)
+const loadError = ref('')
+const pagination = ref({page:1,pages:1,count:0,has_next:false,has_previous:false})
 
-// Mock data for recipients
-const mockRecipients = [
-  { _id: 'r1', fullName: 'علی احمدی', nationalId: '1234567891', birthDate: '1975-03-15', gender: 'male', bloodType: 'O', rhFactor: 'positive', phone: '09123456789', status: 'active', cpra: 22.5, priorityScore: 78.5, citizenship: 'iranian' },
-  { _id: 'r2', fullName: 'مریم حسینی', nationalId: '1111111111', birthDate: '1990-07-22', gender: 'female', bloodType: 'A', rhFactor: 'positive', phone: '09132345678', status: 'active', cpra: 68.5, priorityScore: 85.2, citizenship: 'iranian' },
-  { _id: 'r3', fullName: 'رضا محمدی', nationalId: '2222222222', birthDate: '1970-11-08', gender: 'male', bloodType: 'B', rhFactor: 'negative', phone: '09153456789', status: 'active', cpra: 10, priorityScore: 92, citizenship: 'iranian' },
-  { _id: 'r4', fullName: 'زهرا کریمی', nationalId: '9876543210', birthDate: '1998-01-30', gender: 'female', bloodType: 'AB', rhFactor: 'positive', phone: '09164567890', status: 'inactive', cpra: 5, priorityScore: 65.8, citizenship: 'iranian' },
-  { _id: 'r5', fullName: 'حسین عباسی', nationalId: '5555555555', birthDate: '1965-05-12', gender: 'male', bloodType: 'O', rhFactor: 'negative', phone: '09175678901', status: 'active', cpra: 75, priorityScore: 95.5, citizenship: 'foreign', nationality: 'عراق' }
-]
-
-const filtered = computed(() => {
-  return mockRecipients.filter(r => {
-    if (search.value && !r.fullName.includes(search.value) && !r.nationalId.includes(search.value) && !r.phone.includes(search.value)) return false
-    if (filters.citizenship && r.citizenship !== filters.citizenship) return false
-    if (filters.gender && r.gender !== filters.gender) return false
-    if (filters.bloodType && r.bloodType !== filters.bloodType) return false
-    if (filters.status && r.status !== filters.status) return false
-    return true
-  })
-})
+const filtered = computed(() => recipients.value)
 
 const activeFilterCount = computed(() => Object.values(filters).filter(v => v !== '').length)
 
 const doSearch = () => {
-  // Show toast with result count
-  const event = new CustomEvent('toast', { 
-    detail: { severity: 'info', summary: 'جستجو', detail: `${toFa(filtered.value.length)} نتیجه یافت شد` } 
-  })
-  window.dispatchEvent(event)
+  loadRecipients(1)
 }
 
-const clearFilters = () => { 
+const clearFilters = () => {
   filters.citizenship = ''
   filters.gender = '' 
   filters.bloodType = '' 
   filters.status = '' 
+  search.value = ''
+  loadRecipients(1)
 }
+
+const loadRecipients = async (page = pagination.value.page || 1) => {
+  loading.value = true
+  loadError.value = ''
+  try {
+    const response = await registryApi.listRecipients({page,page_size:25,search:search.value,citizenship:filters.citizenship,gender:filters.gender,blood_type:filters.bloodType,status:filters.status})
+    recipients.value = response.recipients || []
+    pagination.value = response.pagination || pagination.value
+  } catch (error) {
+    loadError.value = error?.message || 'دریافت فهرست گیرندگان انجام نشد'
+  } finally {
+    loading.value = false
+  }
+}
+const changePage=page=>loadRecipients(page)
+
+onMounted(loadRecipients)
 
 const calculateAge = (birthDate) => {
   if (!birthDate) return '—'
-  return new Date().getFullYear() - new Date(birthDate).getFullYear()
+  return toFa(new Date().getFullYear() - new Date(birthDate).getFullYear())
 }
 </script>
 
