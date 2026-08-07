@@ -7,7 +7,9 @@ const groupsFor=value=>{const type=serotype(value);return type?Object.entries(CR
 function multisetMatches(left,right){const used=new Set();let count=0;left.forEach(value=>{const index=right.findIndex((other,i)=>!used.has(i)&&lowResolution(other)===lowResolution(value));if(index>=0){used.add(index);count++}});return count}
 export function evaluateTemporaryCandidate(recipient,candidate){
   const recipientHla=recipient.hla||{}
-  const antibodies=(recipient.anti_hla_tests?.[0]?.selections||[]).map(item=>item.antigen)
+  const latestAnti=recipient.anti_hla_tests?.[0]||null
+  const antibodies=(latestAnti?.selections||[]).map(item=>item.antigen)
+  const antiComplete=Boolean(latestAnti?.class_i_negative&&latestAnti?.class_ii_negative)
   const antibodyLow=new Set(antibodies.map(lowResolution))
   const recipientLow=new Set(ALL_FIELDS.flatMap(field=>recipientHla[field]||[]).map(lowResolution))
   const selfOverlapLow=new Set([...antibodyLow].filter(value=>recipientLow.has(value)))
@@ -21,6 +23,7 @@ export function evaluateTemporaryCandidate(recipient,candidate){
   const exactConflicts=allExactConflicts.filter(value=>!selfOverlapLow.has(lowResolution(value)))
   const cregPotential=candidateAlleles.filter(value=>!antibodyLow.has(lowResolution(value))&&groupsFor(value).some(group=>activeCreg.has(group))).map(value=>({antigen:value,groups:groupsFor(value).filter(group=>activeCreg.has(group))}))
   const percent=maximum?Math.round(matches/maximum*100):0
-  return {...candidate,loci,matches,maximum,percent,exactConflicts,selfOverlapConflicts,cregPotential,status:exactConflicts.length?'incompatible':selfOverlapConflicts.length||cregPotential.length?'conditional':'compatible'}
+  const status=!latestAnti||(!antibodies.length&&!antiComplete)||selfOverlapConflicts.length?'insufficient-data':exactConflicts.length?'incompatible':cregPotential.length?'conditional':'compatible'
+  return {...candidate,loci,matches,maximum,percent,exactConflicts,selfOverlapConflicts,cregPotential,status}
 }
 export function evaluateTemporaryCandidates(recipient,candidates){return candidates.map(candidate=>evaluateTemporaryCandidate(recipient,candidate)).sort((a,b)=>b.percent-a.percent)}

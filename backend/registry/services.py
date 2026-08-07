@@ -477,11 +477,6 @@ def _save_cdc_pra_test(person, user, cdc, *, instance=None, field_prefix="cdc_pr
         required=True,
     )
     parsed = {}
-    implicit_flags = {}
-    is_first_transplant = bool(
-        hasattr(person, "recipient_profile")
-        and person.recipient_profile.transplant_candidate == RecipientProfile.TransplantCandidate.FIRST
-    )
     for key in ("class_i", "class_ii"):
         entry = cdc.get(key) or {}
         if not isinstance(entry, dict):
@@ -496,26 +491,16 @@ def _save_cdc_pra_test(person, user, cdc, *, instance=None, field_prefix="cdc_pr
                 raise ValidationError(
                     {f"{field_prefix}.{key}.value": "درصد PRA باید بین صفر تا صد باشد."}
                 )
-        implicit = bool(is_first_transplant and status == "positive" and value is not None and value <= 5)
         parsed[key] = {"status": status, "value": value}
-        implicit_flags[key] = implicit
-    overall_implicit = any(implicit_flags.values()) and all(
-        parsed[key]["status"] == "negative" or implicit_flags[key]
-        for key in ("class_i", "class_ii")
-    )
     test = instance or CdcPraTest(person=person, created_by=user)
     test.performed_at = performed_at
     for key in ("class_i", "class_ii"):
         setattr(test, f"{key}_status", parsed[key]["status"])
         setattr(test, f"{key}_value", parsed[key]["value"])
-        setattr(test, f"{key}_implicitly_negative", implicit_flags[key])
-        setattr(
-            test,
-            f"{key}_effective_status",
-            "negative" if implicit_flags[key] else parsed[key]["status"],
-        )
-    test.implicitly_negative = overall_implicit
-    test.antibody_count = 0 if overall_implicit else None
+        setattr(test, f"{key}_implicitly_negative", False)
+        setattr(test, f"{key}_effective_status", parsed[key]["status"])
+    test.implicitly_negative = False
+    test.antibody_count = None
     test.full_clean()
     test.save()
     return test

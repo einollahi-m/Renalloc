@@ -130,7 +130,7 @@ class MatchingEngineTests(TestCase):
         self.assertEqual(result["hla_summary"]["loci"]["A"]["matches"], 2)
         self.assertEqual(result["hla_summary"]["loci"]["A"]["common"], ["A*02", "A*02"])
 
-    def test_resolution_mismatch_is_conditional_but_exact_antigen_is_rejected(self):
+    def test_resolution_mismatch_is_blocked_as_insufficient_data_before_exact_rejection(self):
         anti = self.recipient.person.anti_hla_tests.get()
         anti.class_i_negative = False
         anti.save(update_fields=("class_i_negative",))
@@ -140,18 +140,30 @@ class MatchingEngineTests(TestCase):
             locus="A",
             antigen="A*02:01",
         )
+        self.set_hla(self.recipient, [("A", "A*02", 1)])
         donor_typing = self.set_hla(self.donor, [("A", "A*02", 1)])
 
         conditional = evaluate_pair(self.recipient, self.donor)
-        self.assertEqual(conditional["compatibility"], MatchProposal.Compatibility.CONDITIONAL)
-        self.assertEqual(conditional["warnings"][0]["code"], "resolution_mismatch")
+        self.assertEqual(
+            conditional["compatibility"], MatchProposal.Compatibility.INSUFFICIENT_DATA
+        )
+        self.assertIn(
+            "self_hla_anti_hla_overlap", [item["code"] for item in conditional["warnings"]]
+        )
+        self.assertIn(
+            "self_hla_data_quarantine", [item["code"] for item in conditional["rejection_reasons"]]
+        )
 
         selection = donor_typing.selections.get()
         selection.allele = "A*02:01"
         selection.save(update_fields=("allele",))
         rejected = evaluate_pair(self.recipient, self.donor)
-        self.assertEqual(rejected["compatibility"], MatchProposal.Compatibility.INCOMPATIBLE)
-        self.assertIn("anti_hla_mismatch", [item["code"] for item in rejected["rejection_reasons"]])
+        self.assertEqual(
+            rejected["compatibility"], MatchProposal.Compatibility.INSUFFICIENT_DATA
+        )
+        self.assertIn(
+            "self_hla_data_quarantine", [item["code"] for item in rejected["rejection_reasons"]]
+        )
 
     def test_citizenship_mismatch_is_rejected(self):
         self.donor.person.citizenship = Person.Citizenship.IRANIAN
@@ -183,7 +195,7 @@ class MatchingEngineTests(TestCase):
         self.assertIn("A2", result["creg_summary"]["active_groups"])
         self.assertIn("creg_potential_conflict", [item["code"] for item in result["warnings"]])
 
-    def test_recipient_self_hla_anti_hla_overlap_is_conditional_not_rejected(self):
+    def test_recipient_self_hla_anti_hla_overlap_is_quarantined_as_insufficient_data(self):
         anti = self.recipient.person.anti_hla_tests.get()
         anti.class_i_negative = False
         anti.save(update_fields=("class_i_negative",))
@@ -195,12 +207,10 @@ class MatchingEngineTests(TestCase):
 
         result = evaluate_pair(self.recipient, self.donor)
 
-        self.assertEqual(result["compatibility"], MatchProposal.Compatibility.CONDITIONAL)
+        self.assertEqual(result["compatibility"], MatchProposal.Compatibility.INSUFFICIENT_DATA)
         self.assertTrue(result["self_hla_anti_hla_overlap"])
-        self.assertNotIn("anti_hla_mismatch", [item["code"] for item in result["rejection_reasons"]])
-        self.assertIn(
-            "self_hla_anti_hla_overlap", [item["code"] for item in result["warnings"]]
-        )
+        self.assertIn("self_hla_data_quarantine", [item["code"] for item in result["rejection_reasons"]])
+        self.assertIn("self_hla_anti_hla_overlap", [item["code"] for item in result["warnings"]])
 
     def test_priority_emergency_update_is_auditable_and_requeues_matching(self):
         with patch("registry.api.match_recipient.delay_on_commit") as task:
@@ -259,7 +269,9 @@ class MatchingEngineTests(TestCase):
         result = evaluate_pair(self.recipient, self.donor)
         run = run_matching(trigger=MatchingRun.Trigger.MANUAL, initiated_by=self.user)
 
-        self.assertEqual(result["compatibility"], MatchProposal.Compatibility.INCOMPATIBLE)
+        self.assertEqual(
+            result["compatibility"], MatchProposal.Compatibility.INSUFFICIENT_DATA
+        )
         self.assertIn("anti_hla_not_current", [item["code"] for item in result["rejection_reasons"]])
         self.assertEqual(run.proposals.count(), 0)
 
@@ -429,57 +441,13 @@ class MatchingEngineTests(TestCase):
         AntiHlaSelection.objects.create(
             test=anti, hla_class="I", locus="A", antigen="A*02:01"
         )
-        donor_typing = self.set_hla(self.donor, [("A", "A*02", 1)])
+        self.set_hla(self.recipient, [("A", "A*02", 1)])
+        self.set_hla(self.donor, [("A", "A*02", 1)])
         run = run_matching(
             trigger=MatchingRun.Trigger.MANUAL,
             initiated_by=self.user,
             recipient_id=self.recipient.pk,
         )
-        proposal = run.proposals.get()
-        self.assertEqual(proposal.compatibility, MatchProposal.Compatibility.CONDITIONAL)
-        self.request_json(
-            "patch",
-            reverse("registry:proposal-decision", args=[proposal.pk]),
-            {"decision": "approved", "note": "مشروط به Cross-Match فیزیکی"},
-        )
-        request = CrossMatchRequest.objects.get(proposal=proposal)
-        self.request_json(
-            "patch",
-            reverse("registry:crossmatch-result", args=[request.pk]),
-            {"status": "scheduled", "physician_note": "نمونه‌گیری شد"},
-        )
-
-        physical_negative = self.request_json(
-            "patch",
-            reverse("registry:crossmatch-result", args=[request.pk]),
-            {"status": "negative", "physician_note": "نتیجه فیزیکی منفی"},
-        )
-        self.assertEqual(physical_negative.status_code, 200, physical_negative.content)
-        request.refresh_from_db()
-        self.recipient.refresh_from_db()
-        self.assertEqual(request.status, CrossMatchRequest.Status.AWAITING_HIGH_RESOLUTION)
-        self.assertEqual(
-            self.recipient.status, RecipientProfile.Status.AWAITING_HIGH_RESOLUTION
-        )
-
-        premature = self.request_json(
-            "patch",
-            reverse("registry:crossmatch-result", args=[request.pk]),
-            {"status": "negative", "physician_note": "بدون تایپ تکمیلی"},
-        )
-        self.assertEqual(premature.status_code, 400, premature.content)
-
-        finalized = self.request_json(
-            "patch",
-            reverse("registry:crossmatch-result", args=[request.pk]),
-            {
-                "status": "negative",
-                "physician_note": "High-Resolution تکمیل و توسط آزمایشگاه تأیید شد",
-                "high_resolution_confirmed": True,
-            },
-        )
-        self.assertEqual(finalized.status_code, 200, finalized.content)
-        self.recipient.refresh_from_db()
-        self.donor.refresh_from_db()
-        self.assertEqual(self.recipient.status, RecipientProfile.Status.READY)
-        self.assertEqual(self.donor.status, DonorProfile.Status.READY)
+        self.assertFalse(run.proposals.exists())
+        self.assertEqual(run.statistics["rejected_pairs"], 1)
+        self.assertIn("self_hla_data_quarantine", run.statistics["rejection_reasons"])

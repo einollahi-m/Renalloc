@@ -72,7 +72,7 @@
       <table class="data-table">
         <thead>
           <tr>
-            <th>گیرنده</th><th>کد ملی</th><th>گروه خونی</th><th>cPRA</th>
+            <th>گیرنده</th><th>کد ملی</th><th>گروه خونی</th><th>CDC-PRA</th>
             <th>امتیاز اولویت</th><th>وضعیت</th><th>عملیات</th>
           </tr>
         </thead>
@@ -90,9 +90,9 @@
             <td>{{ toFa(r.nationalId) }}</td>
             <td><span class="badge badge-info">{{ r.bloodType }}{{ r.rhFactor === 'positive' ? '+' : '-' }}</span></td>
             <td>
-              <div v-if="r.cpra !== null" class="flex items-center gap-2">
-                <div class="progress" style="width:60px;"><div class="progress-bar" :class="r.cpra>70?'danger':r.cpra>30?'warning':'success'" :style="{width:r.cpra+'%'}"></div></div>
-                <span class="font-bold">{{ toFa(r.cpra) }}٪</span>
+              <div v-if="(r.cdc_pra ?? r.cpra) !== null" class="flex items-center gap-2">
+                <div class="progress" style="width:60px;"><div class="progress-bar" :class="(r.cdc_pra ?? r.cpra)>70?'danger':(r.cdc_pra ?? r.cpra)>30?'warning':'success'" :style="{width:(r.cdc_pra ?? r.cpra)+'%'}"></div></div>
+                <span class="font-bold">{{ toFa(r.cdc_pra ?? r.cpra) }}٪</span>
               </div>
               <span v-else>—</span>
             </td>

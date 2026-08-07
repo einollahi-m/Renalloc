@@ -222,17 +222,20 @@ def serialize_anti_hla(test):
     }
 
 
-def latest_cpra(person):
+def latest_cdc_pra(person):
     test = person.cdc_pra_tests.order_by("-performed_at", "-created_at").first()
     if test is None:
         return None
     values = []
     for prefix in ("class_i", "class_ii"):
-        if getattr(test, f"{prefix}_effective_status") == CdcPraTest.ResultStatus.POSITIVE:
+        if getattr(test, f"{prefix}_status") == CdcPraTest.ResultStatus.POSITIVE:
             value = getattr(test, f"{prefix}_value")
             if value is not None:
                 values.append(float(value))
     return max(values, default=0)
+
+
+latest_cpra = latest_cdc_pra
 
 
 def serialize_recipient_summary(person):
@@ -255,7 +258,8 @@ def serialize_recipient_summary(person):
         "regionalDisadvantage": profile.regional_disadvantage,
         "isEmergency": profile.is_emergency,
         "emergencyReason": profile.emergency_reason,
-        "cpra": latest_cpra(person),
+        "cdc_pra": latest_cdc_pra(person),
+        "cpra": latest_cdc_pra(person),
         "priorityScore": None,
         "citizenship": base["citizenship"],
     }
@@ -862,15 +866,20 @@ def serialize_proposal(proposal, *, patient_view=False):
                 "status_display": proposal.donor.get_status_display(),
             },
             "immune_summary": (
-                "نیازمند بررسی تکمیلی"
-                if proposal.compatibility == MatchProposal.Compatibility.CONDITIONAL
-                else "بدون مشکل شناسایی‌شده"
+                "اطلاعات ناکافی برای تصمیم"
+                if proposal.compatibility == MatchProposal.Compatibility.INSUFFICIENT_DATA
+                else (
+                    "نیازمند بررسی تکمیلی"
+                    if proposal.compatibility == MatchProposal.Compatibility.CONDITIONAL
+                    else "بدون مشکل شناسایی‌شده"
+                )
             ),
             "hla_similarity": {
                 "matches": proposal.hla_summary.get("total_matches", 0),
                 "maximum": 10,
                 "percent": proposal.hla_summary.get("percent", 0),
             },
+            "hla_summary": proposal.hla_summary,
             "requires_physical_crossmatch": True,
             "consultation": (
                 {
@@ -1102,7 +1111,8 @@ def deceased_donor_matching(request):
                 "waiting_days": result["score_breakdown"]["waiting_days"],
                 "medical_urgency": recipient.medical_urgency,
                 "regional_disadvantage": recipient.regional_disadvantage,
-                "cpra": result["score_breakdown"]["cpra_difficulty"],
+                "cdc_pra": result["score_breakdown"]["cdc_pra_difficulty"],
+                "cpra": result["score_breakdown"]["cdc_pra_difficulty"],
                 "compatibility": result["compatibility"],
                 "final_score": result["final_score"],
                 "hla_summary": result["hla_summary"],

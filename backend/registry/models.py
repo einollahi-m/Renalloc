@@ -432,6 +432,10 @@ class ExpiringTestMixin:
     def clean(self):
         super().clean()
         if self.performed_at:
+            if self.performed_at > timezone.localdate():
+                raise ValidationError(
+                    {"performed_at": "تاریخ انجام آزمایش نمی‌تواند در آینده باشد."}
+                )
             expected = self.expiry_for(self.performed_at)
             if self.expires_at and self.expires_at != expected:
                 raise ValidationError(
@@ -441,6 +445,10 @@ class ExpiringTestMixin:
 
     def save(self, *args, **kwargs):
         if self.performed_at:
+            if self.performed_at > timezone.localdate():
+                raise ValidationError(
+                    {"performed_at": "تاریخ انجام آزمایش نمی‌تواند در آینده باشد."}
+                )
             self.expires_at = self.expiry_for(self.performed_at)
         super().save(*args, **kwargs)
 
@@ -866,6 +874,7 @@ class MatchProposal(models.Model):
         COMPATIBLE = "compatible", "سازگار"
         CONDITIONAL = "conditional", "سازگار مشروط"
         INCOMPATIBLE = "incompatible", "ناسازگار"
+        INSUFFICIENT_DATA = "insufficient-data", "اطلاعات ناکافی"
 
     class Decision(models.TextChoices):
         PROPOSED = "proposed", "پیشنهاد شده"
@@ -883,7 +892,7 @@ class MatchProposal(models.Model):
     donor = models.ForeignKey(
         DonorProfile, related_name="match_proposals", on_delete=models.CASCADE
     )
-    compatibility = models.CharField(max_length=16, choices=Compatibility.choices)
+    compatibility = models.CharField(max_length=24, choices=Compatibility.choices)
     decision = models.CharField(max_length=24, choices=Decision.choices, default=Decision.PROPOSED)
     rank = models.PositiveIntegerField(null=True, blank=True)
     final_score = models.DecimalField(max_digits=8, decimal_places=4, default=0)

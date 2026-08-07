@@ -225,6 +225,27 @@ class RegistryApiTests(TestCase):
         self.assertEqual(str(tests[1].class_ii_value), "42.50")
         self.assertEqual(tests[1].expires_at.isoformat(), "2026-09-15")
 
+    def test_low_positive_cdc_pra_remains_positive_for_first_transplant_candidates(self):
+        payload = self.recipient_payload("0499370899")
+        payload["cdc_pra_tests"][0]["class_i"]["value"] = "۵"
+
+        person = self.register_recipient(payload)
+        test = CdcPraTest.objects.get(person=person)
+
+        self.assertEqual(test.class_i_status, "positive")
+        self.assertEqual(test.class_i_effective_status, "positive")
+        self.assertFalse(test.class_i_implicitly_negative)
+        self.assertFalse(test.implicitly_negative)
+
+    def test_future_cdc_pra_date_is_rejected(self):
+        payload = self.recipient_payload("0499370899")
+        payload["cdc_pra_tests"][0]["performed_at"] = (timezone.localdate() + timedelta(days=1)).isoformat()
+
+        response = self.request_json("post", reverse("registry:recipients"), payload)
+
+        self.assertEqual(response.status_code, 400, response.content)
+        self.assertFalse(Person.objects.filter(identifier="0499370899").exists())
+
     def test_initial_cdc_pra_rejects_duplicate_dates_transactionally(self):
         payload = self.recipient_payload("0499370899")
         payload["cdc_pra_tests"].append(

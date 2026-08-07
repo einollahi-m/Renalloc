@@ -30,6 +30,16 @@ ABO_DONOR_TO_RECIPIENT = {
 }
 SCORED_LOCI = ("A", "B", "C", "DRB1", "DQB1")
 CLASS_I_LOCI = {"A", "B", "C"}
+CLINICAL_REJECTION_CODES = {"abo_incompatible", "citizenship_incompatible", "anti_hla_mismatch"}
+DATA_QUALITY_REJECTION_CODES = {
+    "recipient_hla_missing",
+    "donor_hla_missing",
+    "anti_hla_not_current",
+    "anti_hla_insufficient_data",
+    "incomplete_donor_resolution",
+    "self_hla_data_quarantine",
+    "cdc_pra_not_current",
+}
 
 
 def abo_group(value):
@@ -64,12 +74,12 @@ def _latest_any(queryset):
     return queryset.order_by("-performed_at", "-created_at").first()
 
 
-def _cpra(test):
+def _cdc_pra(test):
     if test is None:
         return 0.0
     values = []
     for prefix in ("class_i", "class_ii"):
-        if getattr(test, f"{prefix}_effective_status") == CdcPraTest.ResultStatus.POSITIVE:
+        if getattr(test, f"{prefix}_status") == CdcPraTest.ResultStatus.POSITIVE:
             value = getattr(test, f"{prefix}_value")
             if value is not None:
                 values.append(float(value))
@@ -96,6 +106,10 @@ def _anti_hla_evaluation(anti_test, donor_hla):
     conditional = []
     missing_loci = []
     selections = list(anti_test.selections.all())
+    if not selections:
+        if anti_test.class_i_negative and anti_test.class_ii_negative:
+            return "clear", exact, conditional, []
+        return "insufficient-data", exact, conditional, []
     for selection in selections:
         donor_alleles = donor_hla.get(selection.locus, Counter())
         if not donor_alleles:
@@ -112,8 +126,10 @@ def _anti_hla_evaluation(anti_test, donor_hla):
                 )
     if exact:
         return "mismatch", exact, conditional, sorted(set(missing_loci))
-    if conditional or missing_loci:
-        return "conditional", exact, conditional, sorted(set(missing_loci))
+    if missing_loci:
+        return "insufficient-data", exact, conditional, sorted(set(missing_loci))
+    if conditional:
+        return "conditional", exact, conditional, []
     return "clear", exact, conditional, []
 
 
@@ -184,25 +200,26 @@ def _age_on(birth_date, today):
     )
 
 
-def _score(recipient, hla, cpra, policy, today):
+def _score(recipient, hla, cdc_pra, policy, today):
     waiting_days = max(0, (today - (recipient.waiting_since or today)).days)
     waiting = min(100.0, waiting_days / (365 * 5) * 100)
     age = _age_on(recipient.person.birth_date, today)
     age_priority = max(0.0, min(100.0, (65 - age) / 47 * 100))
-    sensitization = max(0.0, min(100.0, cpra))
+    sensitization = max(0.0, min(100.0, cdc_pra))
     threshold = max(1, policy.high_cpra_threshold)
-    discount = float(policy.high_cpra_hla_discount) * min(1, sensitization / threshold)
-    adaptive_hla = 100 - ((100 - hla["percent"]) * (1 - discount))
+    adaptive_hla = hla["percent"]
     components = {
         "hla_raw": round(hla["percent"], 3),
         "hla_adaptive": round(adaptive_hla, 3),
         "waiting_time": round(waiting, 3),
         "waiting_days": waiting_days,
         "medical_urgency": recipient.medical_urgency,
+        "cdc_pra_difficulty": round(sensitization, 3),
         "cpra_difficulty": round(sensitization, 3),
         "age_priority": round(age_priority, 3),
         "regional_disadvantage": recipient.regional_disadvantage,
-        "adaptive_discount": round(discount, 3),
+        "adaptive_discount": 0.0,
+        "high_sensitization": sensitization >= threshold,
         "policy_version": policy.version,
     }
     final = (
@@ -282,6 +299,13 @@ def evaluate_pair(recipient, donor, *, policy=None, on_date=None, check_state=Tr
         reasons.append(
             _reason("donor_hla_missing", "تایپ HLA اهداکننده ثبت نشده و فیلتر ایمنی قابل اجرا نیست.")
         )
+    if not recipient_hla:
+        reasons.append(
+            _reason(
+                "recipient_hla_missing",
+                "تایپ HLA گیرنده ثبت نشده و ارزیابی شباهت ممکن نیست.",
+            )
+        )
 
     anti_status = "not_evaluated"
     creg_summary = {
@@ -329,7 +353,14 @@ def evaluate_pair(recipient, donor, *, policy=None, on_date=None, check_state=Tr
                 )
             )
             if not exact:
-                anti_status = "conditional"
+                anti_status = "insufficient-data"
+                reasons.append(
+                    _reason(
+                        "self_hla_data_quarantine",
+                        "هم‌پوشانی HLA خودی و Anti-HLA باید برای بازبینی آزمایشگاه قرنطینه شود.",
+                        conflicts=self_overlap_conflicts,
+                    )
+                )
         if conditional:
             warnings.append(
                 _reason(
@@ -339,11 +370,20 @@ def evaluate_pair(recipient, donor, *, policy=None, on_date=None, check_state=Tr
                 )
             )
         if missing_loci:
-            warnings.append(
+            reasons.append(
                 _reason(
                     "incomplete_donor_resolution",
                     "برای رد قطعی واکنش آنتی‌بادی، تکمیل تایپ HLA اهداکننده لازم است.",
                     loci=missing_loci,
+                )
+            )
+        if anti_status == "insufficient-data" and not any(
+            reason["code"] == "self_hla_data_quarantine" for reason in reasons
+        ):
+            reasons.append(
+                _reason(
+                    "anti_hla_insufficient_data",
+                    "آزمایش Anti-HLA گیرنده برای تصمیم‌گیری قطعی کافی نیست.",
                 )
             )
         creg_summary = evaluate_creg(
@@ -368,18 +408,23 @@ def evaluate_pair(recipient, donor, *, policy=None, on_date=None, check_state=Tr
 
     hla = _hla_similarity(recipient_hla, donor_hla, policy)
     if not recipient_hla:
-        warnings.append(_reason("recipient_hla_missing", "HLA گیرنده ثبت نشده و امتیاز شباهت صفر است."))
-    cpra = _cpra(current_cdc)
-    score, breakdown = _score(recipient, hla, cpra, policy, today)
+        warnings.append(
+            _reason("recipient_hla_missing", "HLA گیرنده ثبت نشده و امتیاز شباهت صفر است.")
+        )
+    cdc_pra = _cdc_pra(current_cdc)
+    score, breakdown = _score(recipient, hla, cdc_pra, policy, today)
+    breakdown["cdc_pra"] = round(cdc_pra, 3)
+    breakdown["cpra"] = round(cdc_pra, 3)
     breakdown["creg_summary"] = creg_summary
 
-    compatibility = MatchProposal.Compatibility.INCOMPATIBLE
-    if not reasons:
-        compatibility = (
-            MatchProposal.Compatibility.CONDITIONAL
-            if anti_status == "conditional"
-            else MatchProposal.Compatibility.COMPATIBLE
-        )
+    if any(reason["code"] in CLINICAL_REJECTION_CODES for reason in reasons):
+        compatibility = MatchProposal.Compatibility.INCOMPATIBLE
+    elif any(reason["code"] in DATA_QUALITY_REJECTION_CODES for reason in reasons) or anti_status == "insufficient-data":
+        compatibility = MatchProposal.Compatibility.INSUFFICIENT_DATA
+    elif anti_status == "conditional":
+        compatibility = MatchProposal.Compatibility.CONDITIONAL
+    else:
+        compatibility = MatchProposal.Compatibility.COMPATIBLE
     return {
         "compatibility": compatibility,
         "abo_compatible": abo_ok,
@@ -409,7 +454,8 @@ def evaluate_pair(recipient, donor, *, policy=None, on_date=None, check_state=Tr
                     "id": str(current_cdc.pk),
                     "performed_at": current_cdc.performed_at.isoformat(),
                     "expires_at": current_cdc.expires_at.isoformat(),
-                    "cpra": cpra,
+                    "cdc_pra": cdc_pra,
+                    "cpra": cdc_pra,
                 }
                 if current_cdc
                 else None
@@ -481,7 +527,10 @@ def rank_deceased_donor(*, citizenship, blood_group, hla_by_locus, top_n=25):
     rejected = 0
     for recipient in query:
         result = evaluate_pair(recipient, donor, policy=policy)
-        if result["compatibility"] == MatchProposal.Compatibility.INCOMPATIBLE:
+        if result["compatibility"] not in (
+            MatchProposal.Compatibility.COMPATIBLE,
+            MatchProposal.Compatibility.CONDITIONAL,
+        ):
             rejected += 1
             continue
         ranked.append((recipient, result))
@@ -510,7 +559,10 @@ def run_matching(*, trigger=MatchingRun.Trigger.MANUAL, initiated_by=None, top_n
             for donor in donors:
                 evaluated += 1
                 result = evaluate_pair(recipient, donor, policy=policy)
-                if result["compatibility"] == MatchProposal.Compatibility.INCOMPATIBLE:
+                if result["compatibility"] not in (
+                    MatchProposal.Compatibility.COMPATIBLE,
+                    MatchProposal.Compatibility.CONDITIONAL,
+                ):
                     rejected += 1
                     rejection_reason_counts.update(
                         reason["code"] for reason in result["rejection_reasons"]
