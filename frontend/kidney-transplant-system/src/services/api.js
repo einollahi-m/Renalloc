@@ -208,9 +208,13 @@ export const registryApi = {
     const query = status ? `?status=${encodeURIComponent(status)}` : ''
     return request(`/registry/matching/crossmatches/${query}`)
   },
-  updateCrossmatch(id, status, physicianNote) {
+  updateCrossmatch(id, status, physicianNote, highResolutionConfirmed = false) {
     return request(`/registry/matching/crossmatches/${id}/`, {
-      method: 'PATCH', body: { status, physician_note: physicianNote }
+      method: 'PATCH', body: {
+        status,
+        physician_note: physicianNote,
+        high_resolution_confirmed: highResolutionConfirmed
+      }
     })
   },
   getAllocationPolicy() {

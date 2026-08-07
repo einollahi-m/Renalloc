@@ -56,7 +56,14 @@ RECIPIENT_TRANSITIONS = {
         RecipientProfile.Status.ACTIVE,
         RecipientProfile.Status.REMOVED,
     },
-    RecipientProfile.Status.REMOVED: set(),
+    # Removing a recipient from the waiting list is an operational state, not
+    # deletion of the clinical record.  A level-one coordinator must therefore
+    # be able to restore the record either directly to the pool or send it back
+    # through document review.
+    RecipientProfile.Status.REMOVED: {
+        RecipientProfile.Status.ACTIVE,
+        RecipientProfile.Status.PENDING_DOCUMENTS,
+    },
 }
 
 DONOR_TRANSITIONS = {

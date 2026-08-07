@@ -22,7 +22,7 @@ from registry.models import (
     Person,
     RecipientProfile,
 )
-from registry.workflows import transition_profile
+from registry.workflows import allowed_transitions, transition_profile
 from users.models import AccessToken, Center, User
 
 
@@ -282,6 +282,33 @@ class MatchingEngineTests(TestCase):
         self.assertEqual(event.actor, self.user)
         self.assertTrue(active.waiting_since)
 
+    def test_removed_recipient_can_return_to_waiting_list_and_matching_queue(self):
+        self.recipient.status = RecipientProfile.Status.REMOVED
+        self.recipient.save(update_fields=("status",))
+
+        self.assertIn(
+            RecipientProfile.Status.ACTIVE,
+            allowed_transitions(self.recipient),
+        )
+        self.assertIn(
+            RecipientProfile.Status.PENDING_DOCUMENTS,
+            allowed_transitions(self.recipient),
+        )
+
+        with patch("registry.tasks.match_recipient.delay_on_commit") as matching_task:
+            restored = transition_profile(
+                self.recipient,
+                RecipientProfile.Status.ACTIVE,
+                self.user,
+                "بازگشت مجدد گیرنده به لیست انتظار",
+            )
+
+        self.assertEqual(restored.status, RecipientProfile.Status.ACTIVE)
+        matching_task.assert_called_once_with(str(restored.pk), self.user.pk, "manual")
+        event = ClinicalStateEvent.objects.filter(recipient=restored).latest("created_at")
+        self.assertEqual(event.previous_status, RecipientProfile.Status.REMOVED)
+        self.assertEqual(event.new_status, RecipientProfile.Status.ACTIVE)
+
     def test_waiting_list_and_available_transitions_publish_scoped_tasks(self):
         recipient = self.make_recipient("REC-QUEUE", "O+")
         recipient.status = RecipientProfile.Status.PENDING_DOCUMENTS
@@ -442,13 +469,14 @@ class MatchingEngineTests(TestCase):
         )
         self.assertEqual(premature.status_code, 400, premature.content)
 
-        donor_selection = donor_typing.selections.get()
-        donor_selection.allele = "A*02:05"
-        donor_selection.save(update_fields=("allele",))
         finalized = self.request_json(
             "patch",
             reverse("registry:crossmatch-result", args=[request.pk]),
-            {"status": "negative", "physician_note": "High-Resolution تکمیل شد"},
+            {
+                "status": "negative",
+                "physician_note": "High-Resolution تکمیل و توسط آزمایشگاه تأیید شد",
+                "high_resolution_confirmed": True,
+            },
         )
         self.assertEqual(finalized.status_code, 200, finalized.content)
         self.recipient.refresh_from_db()

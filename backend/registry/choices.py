@@ -8,9 +8,6 @@ class HLALocus(models.TextChoices):
     DRB1 = "DRB1", "HLA-DRB1"
     DQB1 = "DQB1", "HLA-DQB1"
     DRB = "DRB", "HLA-DRB"
-    DQA1 = "DQA1", "HLA-DQA1"
-    DPB1 = "DPB1", "HLA-DPB1"
-    DPA1 = "DPA1", "HLA-DPA1"
 
 
 class AntiHLALocus(models.TextChoices):
@@ -37,9 +34,6 @@ HLA_VALUES_BY_LOCUS = {
     HLALocus.DRB1: "DRB1*01 DRB1*03 DRB1*04 DRB1*07 DRB1*08 DRB1*09 DRB1*10 DRB1*11 DRB1*12 DRB1*13 DRB1*14 DRB1*15 DRB1*16".split(),
     HLALocus.DQB1: "DQB1*02 DQB1*03 DQB1*04 DQB1*05 DQB1*06".split(),
     HLALocus.DRB: ["DRB3", "DRB4", "DRB5", "سایر"],
-    HLALocus.DQA1: [],
-    HLALocus.DPB1: [],
-    HLALocus.DPA1: [],
 }
 
 
@@ -58,28 +52,6 @@ ANTI_HLA_VALUES_BY_LOCUS = {
 
 def _choice_union(values_by_group):
     return tuple((value, value) for values in values_by_group.values() for value in values)
-
-
-# تایپ HLA می‌تواند ابتدا low-resolution و پس از درخواست بالینی high-resolution باشد.
-# هر دو سطح در یک ساختار نگهداری می‌شوند تا اختلاف resolution در موتور Matching
-# قابل تشخیص و پس از تکمیل آزمایش قابل رفع باشد.
-_DETAILED_HLA_LOCUS_MAP = {
-    HLALocus.A: AntiHLALocus.A,
-    HLALocus.B: AntiHLALocus.B,
-    HLALocus.C: AntiHLALocus.C,
-    HLALocus.DRB1: AntiHLALocus.DRB1,
-    HLALocus.DQB1: AntiHLALocus.DQB1,
-    HLALocus.DRB: AntiHLALocus.DRB,
-    HLALocus.DQA1: AntiHLALocus.DQA1,
-    HLALocus.DPB1: AntiHLALocus.DPB1,
-    HLALocus.DPA1: AntiHLALocus.DPA1,
-}
-for _hla_locus, _anti_locus in _DETAILED_HLA_LOCUS_MAP.items():
-    _existing = HLA_VALUES_BY_LOCUS[_hla_locus]
-    HLA_VALUES_BY_LOCUS[_hla_locus] = [
-        *_existing,
-        *(value for value in ANTI_HLA_VALUES_BY_LOCUS[_anti_locus] if value not in _existing),
-    ]
 
 
 HLA_ALLELE_CHOICES = _choice_union(HLA_VALUES_BY_LOCUS)

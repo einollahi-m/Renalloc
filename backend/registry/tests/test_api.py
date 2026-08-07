@@ -300,6 +300,11 @@ class RegistryApiTests(TestCase):
         self.assertEqual(self.request_json("put", url, invalid).status_code, 400)
         wrong_locus = {**valid, "hla_a": ["B*07"]}
         self.assertEqual(self.request_json("put", url, wrong_locus).status_code, 400)
+        anti_hla_resolution = {**valid, "hla_drb1": ["DRB1*15:01"]}
+        self.assertEqual(
+            self.request_json("put", url, anti_hla_resolution).status_code,
+            400,
+        )
 
     def test_anti_hla_accepts_zero_to_many_controlled_selections(self):
         person = self.register_recipient(self.optional_immunology_payload())

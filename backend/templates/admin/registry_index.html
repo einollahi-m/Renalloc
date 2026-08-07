@@ -1,0 +1,39 @@
+{% extends "admin/index.html" %}
+{% load i18n %}
+
+{% block content %}
+<style>
+  .registry-dashboard { margin: 0 0 24px; }
+  .registry-dashboard h2 { margin: 0 0 8px; }
+  .registry-dashboard p { color: var(--body-quiet-color); margin: 0 0 16px; }
+  .registry-links { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+  .registry-link { display: block; padding: 18px; border: 1px solid var(--hairline-color); border-radius: 8px; background: var(--body-bg); text-decoration: none; }
+  .registry-link strong { display: block; color: var(--link-fg); font-size: 16px; margin-bottom: 6px; }
+  .registry-link span { color: var(--body-quiet-color); }
+</style>
+<section class="registry-dashboard">
+  <h2>مدیریت پرونده‌های پیوند</h2>
+  <p>مشاهده، جستجو، ویرایش و حذف پرونده‌ها بر اساس مجوزهای حساب مدیر انجام می‌شود. حذف کامل، اطلاعات هویتی و داده‌های بالینی وابسته را پس از نمایش وابستگی‌ها و تأیید نهایی پاک می‌کند؛ لاگ ممیزی محفوظ می‌ماند.</p>
+  <div class="registry-links">
+    {% if perms.registry.view_recipientprofile %}
+      <a class="registry-link" href="{% url 'admin:registry_recipientprofile_changelist' %}">
+        <strong>گیرندگان</strong>
+        <span>مدیریت پرونده و وضعیت گیرندگان</span>
+      </a>
+    {% endif %}
+    {% if perms.registry.view_donorprofile %}
+      <a class="registry-link" href="{% url 'admin:registry_donorprofile_changelist' %}">
+        <strong>اهداکنندگان</strong>
+        <span>مدیریت پرونده و وضعیت اهداکنندگان</span>
+      </a>
+    {% endif %}
+    {% if perms.registry.view_person %}
+      <a class="registry-link" href="{% url 'admin:registry_person_changelist' %}">
+        <strong>اطلاعات هویتی</strong>
+        <span>دسترسی مدیریتی به اطلاعات پایه افراد</span>
+      </a>
+    {% endif %}
+  </div>
+</section>
+{{ block.super }}
+{% endblock %}

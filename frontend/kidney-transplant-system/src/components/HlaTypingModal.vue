@@ -51,10 +51,7 @@ const fields = [
   { key: 'hla_c', label: 'HLA-C', options: hlaOptions.hlaC },
   { key: 'hla_drb1', label: 'HLA-DRB1', options: hlaOptions.hlaDRB1 },
   { key: 'hla_dqb1', label: 'HLA-DQB1', options: hlaOptions.hlaDQB1 },
-  { key: 'hla_drb', label: 'HLA-DRB3/4/5', options: hlaOptions.hlaDRB },
-  { key: 'hla_dqa1', label: 'HLA-DQA1 (High-Resolution)', options: hlaOptions.hlaDQA1 },
-  { key: 'hla_dpb1', label: 'HLA-DPB1 (High-Resolution)', options: hlaOptions.hlaDPB1 },
-  { key: 'hla_dpa1', label: 'HLA-DPA1 (High-Resolution)', options: hlaOptions.hlaDPA1 }
+  { key: 'hla_drb', label: 'HLA-DRB3/4/5', options: hlaOptions.hlaDRB }
 ]
 const form = reactive(Object.fromEntries(fields.map(field => [field.key, []])))
 const homozygous = reactive(Object.fromEntries(fields.map(field => [field.key, false])))

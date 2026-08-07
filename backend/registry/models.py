@@ -1024,8 +1024,13 @@ class SensitiveDataAccessLog(models.Model):
         blank=True,
     )
     person = models.ForeignKey(
-        Person, related_name="sensitive_data_accesses", on_delete=models.PROTECT
+        Person,
+        related_name="sensitive_data_accesses",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
     )
+    person_identifier = models.CharField(max_length=40, blank=True, db_index=True)
     data_type = models.CharField(max_length=32, default="HLA")
     purpose = models.CharField(max_length=120)
     source_ip = models.GenericIPAddressField(null=True, blank=True)
@@ -1036,3 +1041,8 @@ class SensitiveDataAccessLog(models.Model):
         indexes = [
             models.Index(fields=("person", "data_type", "created_at"), name="registry_sensitive_log_idx"),
         ]
+
+    def save(self, *args, **kwargs):
+        if self.person_id:
+            self.person_identifier = self.person.identifier
+        super().save(*args, **kwargs)

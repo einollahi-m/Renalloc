@@ -66,9 +66,6 @@ HLA_LOCUS_TO_FIELD = {
     "DRB1": "hla_drb1",
     "DQB1": "hla_dqb1",
     "DRB": "hla_drb",
-    "DQA1": "hla_dqa1",
-    "DPB1": "hla_dpb1",
-    "DPA1": "hla_dpa1",
 }
 
 
@@ -1507,23 +1504,12 @@ def crossmatch_result(request, request_id):
             status == CrossMatchRequest.Status.NEGATIVE
             and item.status == CrossMatchRequest.Status.AWAITING_HIGH_RESOLUTION
         ):
+            if request.data.get("high_resolution_confirmed") is not True:
+                return api_error("تأیید صریح نتیجه High-Resolution آزمایشگاه الزامی است.")
             reevaluated = evaluate_pair(item.recipient, item.donor, check_state=False)
-            resolution_warnings = [
-                warning
-                for warning in reevaluated["warnings"]
-                if warning["code"] in {"resolution_mismatch", "incomplete_donor_resolution"}
-            ]
-            donor_is_high_resolution = all(
-                ":" in conflict.get("donor", "")
-                for warning in resolution_warnings
-                for conflict in warning.get("conflicts", [])
-            ) and not any(warning["code"] == "incomplete_donor_resolution" for warning in resolution_warnings)
-            if (
-                reevaluated["compatibility"] == MatchProposal.Compatibility.INCOMPATIBLE
-                or not donor_is_high_resolution
-            ):
+            if reevaluated["compatibility"] == MatchProposal.Compatibility.INCOMPATIBLE:
                 return api_error(
-                    "تایپ High-Resolution اهداکننده کامل نشده یا هنوز mismatch ایمنی وجود دارد."
+                    "با وجود بررسی High-Resolution هنوز mismatch ایمنی قطعی وجود دارد."
                 )
             item.recipient = transition_profile(
                 item.recipient,

@@ -24,14 +24,3 @@ export const antiHlaDQA1Options = ['DQA1*01:01','DQA1*01:02','DQA1*01:03','DQA1*
 export const antiHlaDPB1Options = ['DPB1*01:01','DPB1*02:01','DPB1*03:01','DPB1*04:01','DPB1*04:02','DPB1*05:01','DPB1*06:01','DPB1*09:01','DPB1*11:01','DPB1*13:01','DPB1*14:01','DPB1*15:01','DPB1*17:01','DPB1*18:01','DPB1*19:01','DPB1*28:01'].map(v => ({label:v,value:v}))
 
 export const antiHlaDPA1Options = ['DPA1*01:03','DPA1*02:01','DPA1*02:02','DPA1*03:01','DPA1*04:01'].map(v => ({label:v,value:v}))
-
-// پس از درخواست High-Resolution همان فرم تایپ HLA باید آلل‌های تفصیلی را بپذیرد.
-hlaOptions.hlaA.push(...antiHlaAOptions)
-hlaOptions.hlaB.push(...antiHlaBOptions)
-hlaOptions.hlaC.push(...antiHlaCOptions)
-hlaOptions.hlaDRB1.push(...antiHlaDRB1Options)
-hlaOptions.hlaDQB1.push(...antiHlaDQB1Options)
-hlaOptions.hlaDRB.push(...antiHlaDRB345Options)
-hlaOptions.hlaDQA1 = [...antiHlaDQA1Options]
-hlaOptions.hlaDPB1 = [...antiHlaDPB1Options]
-hlaOptions.hlaDPA1 = [...antiHlaDPA1Options]

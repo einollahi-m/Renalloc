@@ -22,8 +22,8 @@ import { bloodGroupOptions } from '../data/options'
 import { registryApi } from '../services/api'
 import { toFaDigits } from '../utils/date'
 const toFa=toFaDigits,loading=ref(false),error=ref(''),results=ref([]),statistics=ref(null)
-const form=reactive({citizenship:'iranian',blood_group:'',top_n:25,hla_a:[],hla_b:[],hla_c:[],hla_drb1:[],hla_dqb1:[],hla_drb:[],hla_dqa1:[],hla_dpb1:[],hla_dpa1:[]})
-const fields=[{key:'hla_a',label:'HLA-A',options:hlaOptions.hlaA},{key:'hla_b',label:'HLA-B',options:hlaOptions.hlaB},{key:'hla_c',label:'HLA-C',options:hlaOptions.hlaC},{key:'hla_drb1',label:'HLA-DRB1',options:hlaOptions.hlaDRB1},{key:'hla_dqb1',label:'HLA-DQB1',options:hlaOptions.hlaDQB1},{key:'hla_drb',label:'HLA-DRB3/4/5',options:hlaOptions.hlaDRB},{key:'hla_dqa1',label:'HLA-DQA1',options:hlaOptions.hlaDQA1},{key:'hla_dpb1',label:'HLA-DPB1',options:hlaOptions.hlaDPB1},{key:'hla_dpa1',label:'HLA-DPA1',options:hlaOptions.hlaDPA1}]
+const form=reactive({citizenship:'iranian',blood_group:'',top_n:25,hla_a:[],hla_b:[],hla_c:[],hla_drb1:[],hla_dqb1:[],hla_drb:[]})
+const fields=[{key:'hla_a',label:'HLA-A',options:hlaOptions.hlaA},{key:'hla_b',label:'HLA-B',options:hlaOptions.hlaB},{key:'hla_c',label:'HLA-C',options:hlaOptions.hlaC},{key:'hla_drb1',label:'HLA-DRB1',options:hlaOptions.hlaDRB1},{key:'hla_dqb1',label:'HLA-DQB1',options:hlaOptions.hlaDQB1},{key:'hla_drb',label:'HLA-DRB3/4/5',options:hlaOptions.hlaDRB}]
 const canRun=computed(()=>form.blood_group&&fields.some(field=>form[field.key].length))
 async function run(){loading.value=true;error.value='';results.value=[];statistics.value=null;try{const response=await registryApi.matchDeceasedDonor({...form});results.value=response.matches;statistics.value=response.statistics;window.toast?.add({severity:'success',summary:'Matching',detail:`${response.matches.length} گیرنده برتر آماده شد`})}catch(err){error.value=err.message}finally{loading.value=false}}
 const immuneTone=item=>item.anti_hla_status==='mismatch'?'badge-danger':item.creg_summary?.has_potential_conflict?'badge-warning':'badge-success'

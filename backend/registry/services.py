@@ -21,10 +21,7 @@ from .choices import HLAClass, HLALocus
 from .validators import normalize_digits, normalize_national_id
 
 
-HLA_FIELDS = (
-    "hla_a", "hla_b", "hla_c", "hla_drb1", "hla_dqb1", "hla_drb",
-    "hla_dqa1", "hla_dpb1", "hla_dpa1",
-)
+HLA_FIELDS = ("hla_a", "hla_b", "hla_c", "hla_drb1", "hla_dqb1", "hla_drb")
 HLA_FIELD_TO_LOCUS = {
     "hla_a": HLALocus.A,
     "hla_b": HLALocus.B,
@@ -32,9 +29,6 @@ HLA_FIELD_TO_LOCUS = {
     "hla_drb1": HLALocus.DRB1,
     "hla_dqb1": HLALocus.DQB1,
     "hla_drb": HLALocus.DRB,
-    "hla_dqa1": HLALocus.DQA1,
-    "hla_dpb1": HLALocus.DPB1,
-    "hla_dpa1": HLALocus.DPA1,
 }
 APPROVAL_SPECIALTIES = {choice for choice, _label in MedicalApproval.Specialty.choices}
 

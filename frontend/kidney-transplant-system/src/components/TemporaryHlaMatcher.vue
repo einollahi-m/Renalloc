@@ -13,9 +13,9 @@ import { hlaOptions } from '../data/hlaOptions'
 import { evaluateTemporaryCandidates } from '../services/temporaryMatching'
 const props=defineProps({recipient:{type:Object,required:true}})
 let nextId=1
-const blank=()=>({id:nextId++,label:'',hla_a:[],hla_b:[],hla_c:[],hla_drb1:[],hla_dqb1:[],hla_drb:[],hla_dqa1:[],hla_dpb1:[],hla_dpa1:[]})
+const blank=()=>({id:nextId++,label:'',hla_a:[],hla_b:[],hla_c:[],hla_drb1:[],hla_dqb1:[],hla_drb:[]})
 const candidates=reactive([blank()])
-const fields=[{key:'hla_a',label:'HLA-A',options:hlaOptions.hlaA},{key:'hla_b',label:'HLA-B',options:hlaOptions.hlaB},{key:'hla_c',label:'HLA-C',options:hlaOptions.hlaC},{key:'hla_drb1',label:'HLA-DRB1',options:hlaOptions.hlaDRB1},{key:'hla_dqb1',label:'HLA-DQB1',options:hlaOptions.hlaDQB1},{key:'hla_drb',label:'HLA-DRB3/4/5',options:hlaOptions.hlaDRB},{key:'hla_dqa1',label:'HLA-DQA1',options:hlaOptions.hlaDQA1},{key:'hla_dpb1',label:'HLA-DPB1',options:hlaOptions.hlaDPB1},{key:'hla_dpa1',label:'HLA-DPA1',options:hlaOptions.hlaDPA1}]
+const fields=[{key:'hla_a',label:'HLA-A',options:hlaOptions.hlaA},{key:'hla_b',label:'HLA-B',options:hlaOptions.hlaB},{key:'hla_c',label:'HLA-C',options:hlaOptions.hlaC},{key:'hla_drb1',label:'HLA-DRB1',options:hlaOptions.hlaDRB1},{key:'hla_dqb1',label:'HLA-DQB1',options:hlaOptions.hlaDQB1},{key:'hla_drb',label:'HLA-DRB3/4/5',options:hlaOptions.hlaDRB}]
 const results=computed(()=>evaluateTemporaryCandidates(props.recipient,candidates))
 function addCandidate(){candidates.push(blank())}function removeCandidate(index){if(candidates.length>1)candidates.splice(index,1)}
 const tone=status=>status==='compatible'?'badge-success':status==='conditional'?'badge-warning':'badge-danger',label=status=>status==='compatible'?'سازگار مقدماتی':status==='conditional'?'مشروط به بررسی تکمیلی':'ناسازگار Anti-HLA'
